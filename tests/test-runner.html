@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compost Coordinator - Tests</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        h1 {
+            margin-bottom: 1rem;
+            color: #22c55e;
+        }
+        .summary {
+            background: #1e293b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-size: 1.25rem;
+        }
+        .summary.pass {
+            border-left: 4px solid #22c55e;
+        }
+        .summary.fail {
+            border-left: 4px solid #ef4444;
+        }
+        .test-group {
+            margin-bottom: 2rem;
+        }
+        .test-group h2 {
+            color: #94a3b8;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .test {
+            background: #1e293b;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .test.pass {
+            border-left: 3px solid #22c55e;
+        }
+        .test.fail {
+            border-left: 3px solid #ef4444;
+        }
+        .test .icon {
+            font-size: 1.25rem;
+        }
+        .test .name {
+            flex: 1;
+        }
+        .test .details {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+        .error {
+            background: #7f1d1d;
+            color: #fecaca;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Compost Coordinator Tests</h1>
+    <div id="summary" class="summary"></div>
+    <div id="results"></div>
+
+    <script type="module">
+        import { runTests } from './calculator.test.js';
+
+        const results = runTests();
+
+        const summary = document.getElementById('summary');
+        const passed = results.filter(r => r.passed).length;
+        const failed = results.filter(r => !r.passed).length;
+        const total = results.length;
+
+        summary.className = `summary ${failed === 0 ? 'pass' : 'fail'}`;
+        summary.innerHTML = `
+            <strong>${passed}/${total} tests passed</strong>
+            ${failed > 0 ? ` - ${failed} failed` : ' - All tests passing!'}
+        `;
+
+        // Group tests by category
+        const groups = {};
+        results.forEach(r => {
+            const group = r.group || 'Other';
+            if (!groups[group]) groups[group] = [];
+            groups[group].push(r);
+        });
+
+        const resultsDiv = document.getElementById('results');
+        Object.entries(groups).forEach(([groupName, tests]) => {
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'test-group';
+            groupDiv.innerHTML = `<h2>${groupName}</h2>`;
+
+            tests.forEach(test => {
+                const testDiv = document.createElement('div');
+                testDiv.className = `test ${test.passed ? 'pass' : 'fail'}`;
+                testDiv.innerHTML = `
+                    <span class="icon">${test.passed ? '✓' : '✗'}</span>
+                    <span class="name">${test.name}</span>
+                    ${test.details ? `<span class="details">${test.details}</span>` : ''}
+                `;
+                if (!test.passed && test.error) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error';
+                    errorDiv.textContent = test.error;
+                    testDiv.appendChild(errorDiv);
+                }
+                groupDiv.appendChild(testDiv);
+            });
+
+            resultsDiv.appendChild(groupDiv);
+        });
+    </script>
+</body>
+</html>

@@ -29,10 +29,91 @@ Visualizes a 4-stage vermicomposting system with adjustable inputs. Shows how ma
 | Setup cost | ~$250 |
 | Annual revenue | ~$40,000 |
 
-**Revenue streams:**
-- Waste pickup subscriptions ($25/mo)
-- Vermicompost sales ($20/gal)
-- Worm tea application ($15/gal)
+### Revenue Streams
+
+| Stream | Units | Price | Monthly |
+|--------|-------|-------|---------|
+| Waste pickup subscription | 15 households | $25/mo | $375 |
+| Vermicompost sales | 185 gal | $20/gal | $3,700 |
+| Worm tea application | 20 gal | $15/gal | $300 |
+| **Total** | | | **$4,375** |
+
+### Input Requirements (per month)
+
+| Input | Per Household | Total (15 households) |
+|-------|---------------|----------------------|
+| Cardboard | 24 gal | 360 gal |
+| Food waste | 8 gal | 120 gal |
+| **Total input** | 32 gal | 480 gal |
+
+### Output Production
+
+| Output | Volume | Notes |
+|--------|--------|-------|
+| Finished vermicompost | 200 gal | ~42% of input volume |
+| Give-back to subscribers | -12.5 gal | 10 gal/year per household |
+| Sellable compost | 187.5 gal | What gets sold |
+| Worm tea concentrate | 20 gal | Diluted 10:1 for application |
+
+### Labor Hours (per month)
+
+| Task | Hours | Notes |
+|------|-------|-------|
+| **Collection** | 16.0 | |
+| - Drive route | 3.0 | 45 min/week |
+| - Collect food waste buckets | 5.0 | 5 min × 15 households |
+| - Collect cardboard | 3.0 | 3 min × 15 households |
+| - Return clean buckets | 3.0 | 3 min × 15 households |
+| - Bucket cleaning | 2.0 | 30 min/week batch |
+| **Cardboard Processing** | 10.0 | |
+| - Break down + remove plastic | 6.0 | 90 min/week |
+| - Shred | 3.0 | 45 min/week |
+| - Bag/containerize | 1.0 | 15 min/week |
+| **Composting** | 6.7 | |
+| - Add materials to Stage 1 | 2.0 | 30 min/week |
+| - Monitor Stages 2-4 | 0.7 | 10 min/week |
+| - Move piles (3 moves) | 3.0 | 60 min each, monthly |
+| - Harvest Stage 4 | 1.0 | 60 min, monthly |
+| **Worm Tea** | 1.7 | |
+| - Collect castings | 0.25 | 15 min |
+| - Set up brew | 0.33 | 20 min |
+| - Load brew vat | 0.25 | 15 min |
+| - Apply at customer sites | 0.83 | 50 min |
+| **Delivery** | 6.0 | |
+| - Load truck | 1.0 | 60 min |
+| - Customer stops | 5.0 | 10 stops × 30 min |
+| **Total** | **40.4** | |
+
+### Capital Costs (one-time setup)
+
+| Item | Cost |
+|------|------|
+| Shredder | $40 |
+| Buckets (15) | $75 |
+| Aeration pipes (PVC) | $30 |
+| Aquarium pump + airstone | $20 |
+| Initial worms (1 lb) | $30 |
+| Misc (tarp, bags, tools) | $50 |
+| **Total** | **$245** |
+
+### Composting Stages
+
+| Stage | Duration | What Happens |
+|-------|----------|--------------|
+| Stage 1: Active | 3-4 weeks | Hot composting at 130-160°F |
+| Stage 2: Cooling | 3-4 weeks | Temperature drops, bacteria shift |
+| Stage 3: Worms | 3-4 weeks | Worms enter and process material |
+| Stage 4: Harvest | Ongoing | Spread, light expose, collect castings |
+
+**Physical setup:** 4×4×4 ft piles on slope, gravity-flow between stages, log barriers, PVC aeration pipes.
+
+### Seasonal Operation (Michigan)
+
+| Period | Months | Activity | Revenue |
+|--------|--------|----------|---------|
+| Active | Mar-Nov (9) | Full operation | $4,375/mo |
+| Winter | Dec-Feb (3) | Collection only, stockpile | $375/mo |
+| **Annual** | 12 | | **$40,500** |
 
 ## Features
 

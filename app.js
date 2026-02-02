@@ -176,12 +176,12 @@ function updateDrag(clientX, clientY) {
 }
 
 function onMouseUp(e) {
-    if (!dragState.active) return;
+    if (!dragState.nodeId) return; // Only skip if no node was clicked
     endDrag(e.clientX, e.clientY);
 }
 
 function onTouchEnd(e) {
-    if (!dragState.active) return;
+    if (!dragState.nodeId) return; // Only skip if no node was clicked
     const touch = e.changedTouches[0];
     endDrag(touch.clientX, touch.clientY);
 }

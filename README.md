@@ -84,17 +84,42 @@ Visualizes a 4-stage vermicomposting system with adjustable inputs. Shows how ma
 | - Customer stops | 5.0 | 10 stops × 30 min |
 | **Total** | **40.4** | |
 
-### Capital Costs (one-time setup)
+### Capital Costs (scaled operation)
 
-| Item | Cost |
-|------|------|
-| Shredder | $40 |
-| Buckets (15) | $75 |
-| Aeration pipes (PVC) | $30 |
-| Aquarium pump + airstone | $20 |
-| Initial worms (1 lb) | $30 |
-| Misc (tarp, bags, tools) | $50 |
-| **Total** | **$245** |
+| Category | Item | Cost |
+|----------|------|------|
+| **Composting** | Pallet bins (4x, salvaged) | $0 |
+| | Pitchforks (2x) | $50 |
+| | Heavy-duty wheelbarrow | $150 |
+| | Collection buckets (20x) | $100 |
+| | Compost thermometer | $30 |
+| **Cardboard** | Electric leaf shredder | $200 |
+| **Worm Tea** | 50-gal drum + aerator pump | $100 |
+| | Spigots and fittings | $30 |
+| **Logistics** | Used zero-turn mower (54") | $4,000 |
+| | Used ATV (Honda/Yamaha) | $2,500 |
+| | Small utility trailer | $500 |
+| **Lawn Service** | Gas backpack blower | $400 |
+| | Cyclone Rake tow-behind (415 gal) | $2,500 |
+| **Total** | | **~$10,560** |
+
+### Future Service Add-ons
+
+| Service | Equipment | Cost | Rate |
+|---------|-----------|------|------|
+| Lawn aeration | Tow-behind aerator | $300-500 | $50-100/yard |
+| Mowing | (included with zero-turn) | - | $40-60/yard |
+| Leaf removal | (included with Cyclone Rake) | - | $50+/yard |
+
+### Subscription Model
+
+| Type | Price | Notes |
+|------|-------|-------|
+| Monthly | $25/mo | Trial period, higher churn |
+| Annual | $250/yr | Preferred - predictable, fewer fees |
+| HOA contract | Custom | Lump sum, no per-household transactions |
+
+**Scaling path:** Start with 10-15 individual households → prove model → pitch HOA board for neighborhood-wide contract.
 
 ### Composting Stages
 

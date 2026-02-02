@@ -11,26 +11,6 @@
 
 export default {
 	// ============================================
-	// Default Input Values
-	// ============================================
-	defaults: {
-		households: 15,
-		compostPrice: 20,
-		teaPrice: 15,
-		subscriptionPrice: 25,
-		givebackPerYear: 10
-	},
-	
-	// Input ranges for sliders
-	ranges: {
-		households: { min: 5, max: 50, step: 1 },
-		compostPrice: { min: 10, max: 40, step: 1 },
-		teaPrice: { min: 5, max: 25, step: 1 },
-		subscriptionPrice: { min: 15, max: 35, step: 1 },
-		givebackPerYear: { min: 5, max: 25, step: 1 }
-	},
-	
-	// ============================================
 	// Node Definitions
 	// ============================================
 	nodes: {
@@ -39,7 +19,7 @@ export default {
 			label: 'Households',
 			category: 'input',
 			icon: '🏠',
-			position: { "x": 0.5722005162858922, "y": .14 },
+			position: { x: 0.58, y: 0.16 },
 			description: 'Participating households that provide food waste and cardboard',
 			metrics: ['homes', 'gal/week input'],
 			tasks: []
@@ -49,7 +29,7 @@ export default {
 			label: 'Collection',
 			category: 'labor',
 			icon: '🚛',
-			position: { "x": 0.34160155978519474, "y": .14 },
+			position: { x: 0.34, y: 0.16 },
 			description: 'Weekly pickup of food waste and cardboard from households',
 			metrics: ['hr/mo', 'stops'],
 			tasks: [
@@ -65,7 +45,7 @@ export default {
 			label: 'Cardboard Processing',
 			category: 'labor',
 			icon: '📦',
-			position: { "x": 0.17, "y": .14 },
+			position: { x: 0.1, y: 0.16 },
 			description: 'Break down, shred, and prepare cardboard for composting',
 			metrics: ['hr/mo', 'gal/week'],
 			tasks: [
@@ -79,7 +59,7 @@ export default {
 			label: 'Food Waste Processing',
 			category: 'labor',
 			icon: '🍎',
-			position: { "x": 0.26171875, "y": 0.3235591456651964 },
+			position: { x: 0.22, y: 0.42 },
 			description: 'Sort, prepare, and measure food waste before composting',
 			metrics: ['hr/mo'],
 			tasks: [
@@ -92,7 +72,7 @@ export default {
 			label: 'Stage 1: Active',
 			category: 'composting',
 			icon: '🔥',
-			position: { "x": 0.17, "y": .55 },
+			position: { x: 0.1, y: 0.7 },
 			description: 'Hot composting phase - thermophilic bacteria break down material at 130-160°F',
 			metrics: ['weeks', 'gal capacity'],
 			tasks: [
@@ -105,7 +85,7 @@ export default {
 			label: 'Stage 2: Cooling',
 			category: 'composting',
 			icon: '🌡️',
-			position: { "x": 0.31640625, "y": .55 },
+			position: { x: 0.26, y: 0.7 },
 			description: 'Temperature drops, mesophilic bacteria take over',
 			metrics: ['weeks'],
 			tasks: [
@@ -118,7 +98,7 @@ export default {
 			label: 'Stage 3: Worms',
 			category: 'composting',
 			icon: '🪱',
-			position: { "x": 0.4524739583333333, "y": .55 },
+			position: { x: 0.42, y: 0.7 },
 			description: 'Worms enter and process material into castings',
 			metrics: ['weeks', 'worm activity'],
 			tasks: [
@@ -131,7 +111,7 @@ export default {
 			label: 'Stage 4: Harvest',
 			category: 'composting',
 			icon: '🌱',
-			position: { "x": 0.6028645833333334, "y": .55 },
+			position: { x: 0.58, y: 0.7 },
 			description: 'Spread, expose to light, harvest finished vermicompost',
 			metrics: ['gal/mo', 'worm return'],
 			tasks: [
@@ -145,7 +125,7 @@ export default {
 			label: 'Brew Worm Tea',
 			category: 'processing',
 			icon: '💧',
-			position: { "x": 0.6015625, "y": .55 },
+			position: { x: 0.8, y: 0.7 },
 			description: 'Brew aerated worm tea from finished castings',
 			metrics: ['gal/mo', 'brew cycles'],
 			tasks: [
@@ -160,7 +140,7 @@ export default {
 			label: 'Delivery',
 			category: 'labor',
 			icon: '🚚',
-			position: { "x": 0.806640625, "y": 0.6534378058941662 },
+			position: { x: 0.68, y: 0.44 },
 			description: 'Load truck, deliver to customers, apply worm tea',
 			metrics: ['hr/mo', 'stops'],
 			tasks: [
@@ -173,12 +153,13 @@ export default {
 			label: 'Purchasers',
 			category: 'output',
 			icon: '🏡',
-			position: { "x": 0.8001302083333334, "y": .14 },
+			position: { x: 0.8, y: 0.16 },
 			description: 'External buyers purchasing finished compost and worm tea',
 			metrics: ['buyers', '$/mo revenue'],
 			tasks: []
 		}
 	},
+	
 	
 	// ============================================
 	// Edge Definitions (Material Flow)

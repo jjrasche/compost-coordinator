@@ -17,7 +17,76 @@
 
 const CARDBOARD_PER_HOUSEHOLD_PER_WEEK = 6; // gallons
 const FOOD_WASTE_PER_HOUSEHOLD_PER_WEEK = 2; // gallons
+const GRASS_CLIPPINGS_PER_HOUSEHOLD_PER_WEEK = 4; // gallons (mowing season only)
 const WEEKS_PER_MONTH = 4;
+
+// ============================================
+// Equipment & Capital Costs
+// ============================================
+
+export const EQUIPMENT = {
+    // Core composting (minimal - mostly manual)
+    composting: {
+        palletBins: { cost: 0, description: '4x pallet bins (free/salvaged)', depreciationYears: 10 },
+        pitchforks: { cost: 50, description: '2x pitchforks', depreciationYears: 5 },
+        wheelbarrow: { cost: 150, description: 'Heavy-duty wheelbarrow', depreciationYears: 10 },
+        buckets: { cost: 100, description: '20x 5-gal buckets for collection', depreciationYears: 3 },
+        thermometer: { cost: 30, description: 'Compost thermometer', depreciationYears: 5 },
+        subtotal: 330
+    },
+    // Cardboard processing
+    cardboard: {
+        shredder: { cost: 200, description: 'Electric leaf shredder (doubles for cardboard)', depreciationYears: 5 },
+        subtotal: 200
+    },
+    // Worm tea production
+    wormTea: {
+        brewingVat: { cost: 100, description: '50-gal drum + aerator pump', depreciationYears: 5 },
+        spigots: { cost: 30, description: 'Spigots and fittings', depreciationYears: 5 },
+        subtotal: 130
+    },
+    // Logistics & delivery
+    logistics: {
+        zeroTurn: { cost: 4000, description: 'Used zero-turn mower (Husqvarna/Toro 54")', depreciationYears: 7 },
+        atv: { cost: 2500, description: 'Used ATV (Honda Rancher/Yamaha Grizzly)', depreciationYears: 10 },
+        trailer: { cost: 500, description: 'Small utility trailer', depreciationYears: 10 },
+        subtotal: 7000
+    },
+    // Leaf/lawn service (target $50+/hr)
+    lawnService: {
+        backpackBlower: { cost: 400, description: 'Gas backpack blower (Stihl/Echo)', depreciationYears: 7 },
+        cycloneRake: { cost: 2500, description: 'Cyclone Rake tow-behind vacuum (415 gal)', depreciationYears: 10 },
+        subtotal: 2900
+    }
+};
+
+// Calculate total startup cost
+export function calculateStartupCost(includeLawnService = true) {
+    let total = EQUIPMENT.composting.subtotal +
+                EQUIPMENT.cardboard.subtotal +
+                EQUIPMENT.wormTea.subtotal +
+                EQUIPMENT.logistics.subtotal;
+    if (includeLawnService) {
+        total += EQUIPMENT.lawnService.subtotal;
+    }
+    return total;
+}
+
+// Calculate annual depreciation
+export function calculateAnnualDepreciation(includeLawnService = true) {
+    let depreciation = 0;
+    const categories = ['composting', 'cardboard', 'wormTea', 'logistics'];
+    if (includeLawnService) categories.push('lawnService');
+
+    for (const cat of categories) {
+        for (const [key, item] of Object.entries(EQUIPMENT[cat])) {
+            if (key !== 'subtotal' && item.depreciationYears) {
+                depreciation += item.cost / item.depreciationYears;
+            }
+        }
+    }
+    return depreciation;
+}
 
 // Conversion: input shrinks ~58% to output (480 gal in → 200 gal out)
 const INPUT_TO_OUTPUT_RATIO = 200 / 480; // ~0.417
@@ -235,7 +304,8 @@ export function calculateFullModel({
     compostPrice,
     teaPrice,
     subscriptionPrice,
-    givebackPerYear
+    givebackPerYear,
+    includeLawnService = true
 }) {
     // Calculate input volumes
     const inputs = calculateInputVolumes(households);
@@ -266,6 +336,10 @@ export function calculateFullModel({
     // Calculate hourly rate
     const hourlyRate = calculateHourlyRate(revenue.total, labor.total);
 
+    // Capital costs
+    const startupCost = calculateStartupCost(includeLawnService);
+    const annualDepreciation = calculateAnnualDepreciation(includeLawnService);
+
     return {
         inputs,
         outputs: {
@@ -275,6 +349,11 @@ export function calculateFullModel({
         revenue,
         labor,
         hourlyRate,
+        capital: {
+            startupCost,
+            annualDepreciation,
+            equipment: EQUIPMENT
+        },
         // Annual projections (9 months active, 3 months winter)
         annual: {
             activeMonths: 9,
@@ -285,3 +364,37 @@ export function calculateFullModel({
         }
     };
 }
+
+// ============================================
+// Youth Labor Regulations
+// ============================================
+
+export const YOUTH_LABOR = {
+    // Co-op policy: require 4-H cert for ALL powered equipment operators
+    coopPolicy: {
+        rule: 'All youth operating powered equipment must have 4-H Tractor Safety certification',
+        reason: 'Liability protection, safety training, professionalism',
+        minAgeForPoweredEquipment: 14
+    },
+    // Legal minimums by equipment type
+    legalMinimums: {
+        handTools: { minAge: 12, certification: null, notes: 'With parental consent' },
+        electricShredder: { minAge: 14, certification: null, notes: 'Non-hazardous' },
+        zeroTurn: { minAge: 14, certification: '4-H Tractor Safety', notes: 'Co-op requires for all ages' },
+        atv: { minAge: 14, certification: '4-H Tractor Safety', notes: 'Co-op requires for all ages' },
+        tractor: { minAge: 14, certification: '4-H Tractor Safety', notes: 'Over 20 PTO HP' },
+        truckDriving: { minAge: 16, certification: 'Drivers license', notes: 'No CDL for small trucks' }
+    },
+    // Parental exemption (legal, but co-op still requires training)
+    parentalExemption: 'Law allows parents to let their kids operate anything on family land, but co-op still requires certification',
+    // Certification info
+    certification: {
+        name: '4-H Tractor and Machinery Certification',
+        provider: 'Local 4-H extension office',
+        cost: 'Free',
+        duration: '1-2 day course',
+        ages: '14+',
+        allows: 'Tractors, ATVs, zero-turns, other power equipment',
+        penalty: 'Up to $10,000 fine for employers hiring uncertified 14-15 year olds'
+    }
+};

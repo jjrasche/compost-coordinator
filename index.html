@@ -3,225 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compost Coordinator - Youth Labor Business Model</title>
+    <title>Compost Coordinator - Process Flow</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app">
-        <!-- Header with summary stats -->
-        <header class="header">
-            <div class="header-title">
-                <h1>Compost Coordinator</h1>
-                <p class="tagline">Youth-Operated Vermicomposting Business Model</p>
-            </div>
-            <div class="header-stats">
-                <div class="stat">
-                    <span class="stat-value" id="stat-revenue">$4,375</span>
-                    <span class="stat-label">/month</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-value" id="stat-hours">40.4</span>
-                    <span class="stat-label">hrs/month</span>
-                </div>
-                <div class="stat highlight">
-                    <span class="stat-value" id="stat-hourly">$108</span>
-                    <span class="stat-label">/hour</span>
-                </div>
-            </div>
-        </header>
+    <div class="diagram-container">
+        <!-- Nodes layer (HTML divs) -->
+        <div id="nodes-layer"></div>
 
-        <div class="main-content">
-            <!-- Left sidebar: Inputs -->
-            <aside class="sidebar inputs-panel">
-                <h2>Adjust Inputs</h2>
+        <!-- Edges layer (SVG) -->
+        <svg id="edges-layer" class="edges-svg"></svg>
 
-                <div class="input-group">
-                    <label for="input-households">
-                        <span class="input-label">Households</span>
-                        <span class="input-value" id="value-households">15</span>
-                    </label>
-                    <input type="range" id="input-households" min="5" max="50" value="15" step="1">
-                </div>
-
-                <div class="input-group">
-                    <label for="input-compost-price">
-                        <span class="input-label">Compost Price</span>
-                        <span class="input-value">$<span id="value-compost-price">20</span>/gal</span>
-                    </label>
-                    <input type="range" id="input-compost-price" min="10" max="40" value="20" step="1">
-                </div>
-
-                <div class="input-group">
-                    <label for="input-tea-price">
-                        <span class="input-label">Worm Tea Price</span>
-                        <span class="input-value">$<span id="value-tea-price">15</span>/gal</span>
-                    </label>
-                    <input type="range" id="input-tea-price" min="5" max="25" value="15" step="1">
-                </div>
-
-                <div class="input-group">
-                    <label for="input-subscription-price">
-                        <span class="input-label">Subscription</span>
-                        <span class="input-value">$<span id="value-subscription-price">25</span>/mo</span>
-                    </label>
-                    <input type="range" id="input-subscription-price" min="15" max="35" value="25" step="1">
-                </div>
-
-                <div class="input-group">
-                    <label for="input-giveback">
-                        <span class="input-label">Give-back</span>
-                        <span class="input-value"><span id="value-giveback">10</span> gal/yr</span>
-                    </label>
-                    <input type="range" id="input-giveback" min="5" max="25" value="10" step="1">
-                </div>
-
-                <div class="divider"></div>
-
-                <h3>Capital Costs</h3>
-                <div class="capital-costs" id="capital-costs">
-                    <!-- Filled by JS -->
-                </div>
-            </aside>
-
-            <!-- Main diagram area -->
-            <main class="diagram-container">
-                <svg id="diagram" class="diagram">
-                    <!-- Edges layer (behind nodes) -->
-                    <g id="edges-layer"></g>
-                    <!-- Nodes layer -->
-                    <g id="nodes-layer"></g>
-                    <!-- Animated icons layer -->
-                    <g id="icons-layer"></g>
-                </svg>
-
-                <!-- Node detail panel (shown when node clicked) -->
-                <div id="node-detail" class="node-detail hidden">
-                    <button class="close-btn" id="close-detail">&times;</button>
-                    <div class="detail-header">
-                        <span class="detail-icon" id="detail-icon"></span>
-                        <h3 id="detail-title"></h3>
-                    </div>
-                    <p class="detail-description" id="detail-description"></p>
-                    <div class="detail-tasks" id="detail-tasks">
-                        <!-- Task breakdown filled by JS -->
-                    </div>
-                    <div class="detail-total" id="detail-total"></div>
-                </div>
-            </main>
-
-            <!-- Right sidebar: Outputs -->
-            <aside class="sidebar outputs-panel">
-                <h2>Monthly Outputs</h2>
-
-                <div class="output-section">
-                    <h3>Inputs</h3>
-                    <div class="output-row">
-                        <span>Cardboard</span>
-                        <span id="output-cardboard">360 gal</span>
-                    </div>
-                    <div class="output-row">
-                        <span>Food waste</span>
-                        <span id="output-food">120 gal</span>
-                    </div>
-                </div>
-
-                <div class="output-section">
-                    <h3>Products</h3>
-                    <div class="output-row">
-                        <span>Finished compost</span>
-                        <span id="output-compost">200 gal</span>
-                    </div>
-                    <div class="output-row">
-                        <span>Give-back</span>
-                        <span id="output-giveback">-12.5 gal</span>
-                    </div>
-                    <div class="output-row highlight">
-                        <span>Sellable</span>
-                        <span id="output-sellable">187.5 gal</span>
-                    </div>
-                    <div class="output-row">
-                        <span>Worm tea</span>
-                        <span id="output-tea">20 gal</span>
-                    </div>
-                </div>
-
-                <div class="output-section">
-                    <h3>Revenue</h3>
-                    <div class="output-row">
-                        <span>Subscriptions</span>
-                        <span id="revenue-subscriptions">$375</span>
-                    </div>
-                    <div class="output-row">
-                        <span>Compost sales</span>
-                        <span id="revenue-compost">$3,750</span>
-                    </div>
-                    <div class="output-row">
-                        <span>Worm tea</span>
-                        <span id="revenue-tea">$300</span>
-                    </div>
-                    <div class="output-row total">
-                        <span>Total</span>
-                        <span id="revenue-total">$4,375</span>
-                    </div>
-                </div>
-
-                <div class="output-section">
-                    <h3>Labor</h3>
-                    <div class="output-row">
-                        <span>Collection</span>
-                        <span id="labor-collection">16 hr</span>
-                    </div>
-                    <div class="output-row">
-                        <span>Cardboard</span>
-                        <span id="labor-cardboard">10 hr</span>
-                    </div>
-                    <div class="output-row">
-                        <span>Composting</span>
-                        <span id="labor-composting">6.7 hr</span>
-                    </div>
-                    <div class="output-row">
-                        <span>Worm tea</span>
-                        <span id="labor-tea">1.7 hr</span>
-                    </div>
-                    <div class="output-row">
-                        <span>Delivery</span>
-                        <span id="labor-delivery">6 hr</span>
-                    </div>
-                    <div class="output-row total">
-                        <span>Total</span>
-                        <span id="labor-total">40.4 hr</span>
-                    </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="annual-summary">
-                    <h3>Annual (9 active months)</h3>
-                    <div class="output-row">
-                        <span>Revenue</span>
-                        <span id="annual-revenue">$40,500</span>
-                    </div>
-                    <div class="output-row">
-                        <span>Hours</span>
-                        <span id="annual-hours">412</span>
-                    </div>
-                    <div class="output-row highlight">
-                        <span>Effective rate</span>
-                        <span id="annual-rate">$98/hr</span>
-                    </div>
-                </div>
-            </aside>
+        <!-- Design mode indicator -->
+        <div id="design-mode-indicator" class="design-mode-indicator hidden">
+            Design Mode (Ctrl+D to toggle)
         </div>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <p>
-                <strong>Youth-produced</strong> · <strong>Hyperlocal</strong> · <strong>Food-waste-diverted</strong> · <strong>Carbon-negative</strong>
-            </p>
-            <p class="seasonal-note" id="seasonal-note">
-                Collection continues year-round. Composting slows in winter. Sales resume in spring.
-            </p>
-        </footer>
+        <!-- Node detail panel (shown when node clicked) -->
+        <div id="node-detail" class="node-detail hidden">
+            <button class="close-btn" id="close-detail">&times;</button>
+            <div class="detail-header">
+                <span class="detail-icon" id="detail-icon"></span>
+                <h3 id="detail-title"></h3>
+            </div>
+            <p class="detail-description" id="detail-description"></p>
+            <div class="detail-tasks" id="detail-tasks">
+                <!-- Task breakdown filled by JS -->
+            </div>
+            <div class="detail-total" id="detail-total"></div>
+        </div>
     </div>
 
     <script type="module" src="app.js"></script>

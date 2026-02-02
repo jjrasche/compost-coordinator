@@ -1,20 +1,34 @@
 /**
  * Compost Coordinator - Main Application
  *
- * Event handling, state management, and UI updates
+ * Drag-and-drop diagram with static model
  */
 
 import config from './config.js';
 import * as calc from './calculator.js';
-import { renderDiagram, updateMetrics } from './diagram.js';
+import { renderDiagram, renderEdges, saveNodePosition, updateNodePosition } from './diagram.js';
 
 // ============================================
-// State
+// Design Mode State
 // ============================================
 
-let state = {
-    inputs: { ...config.defaults },
-    // Computed values filled by updateState()
+let designMode = false;
+
+// ============================================
+// Drag State
+// ============================================
+
+const DRAG_THRESHOLD = 5; // pixels
+
+let dragState = {
+    active: false,
+    nodeId: null,
+    nodeElement: null,
+    startX: 0,
+    startY: 0,
+    startClientX: 0,
+    startClientY: 0,
+    containerRect: null
 };
 
 // ============================================
@@ -22,150 +36,195 @@ let state = {
 // ============================================
 
 function init() {
-    // Initial calculation
-    updateState();
+    // Initial render
+    renderDiagram();
 
     // Set up event listeners
-    setupInputListeners();
-    setupNodeClickListeners();
+    setupDragListeners();
+    setupDesignModeToggle();
     setupDetailPanelListeners();
-
-    // Render capital costs
-    renderCapitalCosts();
-
-    // Initial render
-    const svg = document.getElementById('diagram');
-    renderDiagram(svg, state);
 
     // Re-render on resize
     window.addEventListener('resize', () => {
-        renderDiagram(svg, state);
+        renderDiagram();
     });
 }
 
 // ============================================
-// State Management
+// Design Mode Toggle
 // ============================================
 
-function updateState() {
-    const model = calc.calculateFullModel({
-        households: state.inputs.households,
-        compostPrice: state.inputs.compostPrice,
-        teaPrice: state.inputs.teaPrice,
-        subscriptionPrice: state.inputs.subscriptionPrice,
-        givebackPerYear: state.inputs.givebackPerYear
-    });
+function setupDesignModeToggle() {
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'd') {
+            e.preventDefault();
+            designMode = !designMode;
 
-    state = {
-        inputs: state.inputs,
-        ...model
-    };
+            const indicator = document.getElementById('design-mode-indicator');
+            indicator.classList.toggle('hidden', !designMode);
 
-    updateUI();
-}
-
-// ============================================
-// UI Updates
-// ============================================
-
-function updateUI() {
-    // Header stats
-    document.getElementById('stat-revenue').textContent = `$${state.revenue.total.toLocaleString()}`;
-    document.getElementById('stat-hours').textContent = state.labor.total.toFixed(1);
-    document.getElementById('stat-hourly').textContent = `$${Math.round(state.hourlyRate)}`;
-
-    // Input values
-    document.getElementById('value-households').textContent = state.inputs.households;
-    document.getElementById('value-compost-price').textContent = state.inputs.compostPrice;
-    document.getElementById('value-tea-price').textContent = state.inputs.teaPrice;
-    document.getElementById('value-subscription-price').textContent = state.inputs.subscriptionPrice;
-    document.getElementById('value-giveback').textContent = state.inputs.givebackPerYear;
-
-    // Outputs - Inputs
-    document.getElementById('output-cardboard').textContent = `${state.inputs.cardboardPerMonth} gal`;
-    document.getElementById('output-food').textContent = `${state.inputs.foodWastePerMonth} gal`;
-
-    // Outputs - Products
-    document.getElementById('output-compost').textContent = `${state.outputs.finishedCompostPerMonth.toFixed(0)} gal`;
-    const givebackPerMonth = (state.inputs.households * state.inputs.givebackPerYear / 12);
-    document.getElementById('output-giveback').textContent = `-${givebackPerMonth.toFixed(1)} gal`;
-    document.getElementById('output-sellable').textContent = `${state.outputs.sellableCompost.toFixed(1)} gal`;
-    document.getElementById('output-tea').textContent = `${state.outputs.wormTeaConcentrate.toFixed(0)} gal`;
-
-    // Revenue
-    document.getElementById('revenue-subscriptions').textContent = `$${state.revenue.subscriptions.toLocaleString()}`;
-    document.getElementById('revenue-compost').textContent = `$${state.revenue.compost.toLocaleString()}`;
-    document.getElementById('revenue-tea').textContent = `$${state.revenue.tea.toLocaleString()}`;
-    document.getElementById('revenue-total').textContent = `$${state.revenue.total.toLocaleString()}`;
-
-    // Labor
-    document.getElementById('labor-collection').textContent = `${state.labor.collection.toFixed(1)} hr`;
-    document.getElementById('labor-cardboard').textContent = `${state.labor.cardboard.toFixed(1)} hr`;
-    document.getElementById('labor-composting').textContent = `${state.labor.composting.toFixed(1)} hr`;
-    document.getElementById('labor-tea').textContent = `${state.labor.tea.toFixed(1)} hr`;
-    document.getElementById('labor-delivery').textContent = `${state.labor.delivery.toFixed(1)} hr`;
-    document.getElementById('labor-total').textContent = `${state.labor.total.toFixed(1)} hr`;
-
-    // Annual
-    const annualRevenue = (state.revenue.total * 9) + (state.revenue.subscriptions * 3);
-    const annualHours = (state.labor.total * 9) + (state.labor.collection * 3);
-    const annualRate = annualHours > 0 ? annualRevenue / annualHours : 0;
-
-    document.getElementById('annual-revenue').textContent = `$${annualRevenue.toLocaleString()}`;
-    document.getElementById('annual-hours').textContent = Math.round(annualHours);
-    document.getElementById('annual-rate').textContent = `$${Math.round(annualRate)}/hr`;
-
-    // Update diagram metrics
-    const svg = document.getElementById('diagram');
-    updateMetrics(svg, state);
-}
-
-// ============================================
-// Input Listeners
-// ============================================
-
-function setupInputListeners() {
-    const inputs = [
-        { id: 'input-households', key: 'households' },
-        { id: 'input-compost-price', key: 'compostPrice' },
-        { id: 'input-tea-price', key: 'teaPrice' },
-        { id: 'input-subscription-price', key: 'subscriptionPrice' },
-        { id: 'input-giveback', key: 'givebackPerYear' }
-    ];
-
-    inputs.forEach(({ id, key }) => {
-        const input = document.getElementById(id);
-        if (input) {
-            input.addEventListener('input', (e) => {
-                state.inputs[key] = parseInt(e.target.value, 10);
-                updateState();
-            });
+            // Update cursor style
+            document.body.style.cursor = designMode ? 'move' : 'default';
         }
     });
 }
 
 // ============================================
-// Node Click Handlers
+// Drag-and-Drop Functionality
 // ============================================
 
-function setupNodeClickListeners() {
-    const svg = document.getElementById('diagram');
+function setupDragListeners() {
+    const nodesLayer = document.getElementById('nodes-layer');
 
-    svg.addEventListener('click', (e) => {
-        const nodeEl = e.target.closest('.node');
-        if (nodeEl) {
-            const nodeId = nodeEl.getAttribute('data-node-id');
-            showNodeDetail(nodeId);
-        }
-    });
+    // Use event delegation
+    nodesLayer.addEventListener('mousedown', onMouseDown);
+    nodesLayer.addEventListener('touchstart', onTouchStart, { passive: false });
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('touchmove', onTouchMove, { passive: true });
+
+    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('touchend', onTouchEnd);
 }
+
+function onMouseDown(e) {
+    const nodeEl = e.target.closest('.node');
+    if (!nodeEl) return;
+
+    // Track click start for both modes
+    dragState.startClientX = e.clientX;
+    dragState.startClientY = e.clientY;
+    dragState.nodeId = nodeEl.getAttribute('data-node-id');
+    dragState.nodeElement = nodeEl;
+
+    // Only prevent default and start drag if in design mode
+    if (designMode) {
+        e.preventDefault();
+        const container = document.querySelector('.diagram-container');
+        const rect = container.getBoundingClientRect();
+
+        dragState.active = true;
+        dragState.startX = e.clientX;
+        dragState.startY = e.clientY;
+        dragState.containerRect = rect;
+
+        nodeEl.classList.add('dragging');
+        nodeEl.style.zIndex = '100';
+    }
+}
+
+function onTouchStart(e) {
+    const nodeEl = e.target.closest('.node');
+    if (!nodeEl) return;
+
+    const touch = e.touches[0];
+
+    // Track click start for both modes
+    dragState.startClientX = touch.clientX;
+    dragState.startClientY = touch.clientY;
+    dragState.nodeId = nodeEl.getAttribute('data-node-id');
+    dragState.nodeElement = nodeEl;
+
+    // Only prevent default and start drag if in design mode
+    if (designMode) {
+        e.preventDefault();
+        const container = document.querySelector('.diagram-container');
+        const rect = container.getBoundingClientRect();
+
+        dragState.active = true;
+        dragState.startX = touch.clientX;
+        dragState.startY = touch.clientY;
+        dragState.containerRect = rect;
+
+        nodeEl.classList.add('dragging');
+        nodeEl.style.zIndex = '100';
+    }
+}
+
+
+function onMouseMove(e) {
+    if (!dragState.active) return;
+    e.preventDefault();
+    updateDrag(e.clientX, e.clientY);
+}
+
+function onTouchMove(e) {
+    if (!dragState.active) return;
+    const touch = e.touches[0];
+    updateDrag(touch.clientX, touch.clientY);
+}
+
+function updateDrag(clientX, clientY) {
+    const rect = dragState.containerRect;
+
+    // Calculate percentage position (0-1)
+    let x = (clientX - rect.left) / rect.width;
+    let y = (clientY - rect.top) / rect.height;
+
+    // Clamp to keep nodes within bounds
+    x = Math.max(0.05, Math.min(0.95, x));
+    y = Math.max(0.05, Math.min(0.95, y));
+
+    // Update node position
+    updateNodePosition(dragState.nodeId, x, y);
+
+    // Save to localStorage
+    saveNodePosition(dragState.nodeId, x, y);
+
+    // Re-render edges
+    renderEdges();
+}
+
+function onMouseUp(e) {
+    if (!dragState.active) return;
+    endDrag(e.clientX, e.clientY);
+}
+
+function onTouchEnd(e) {
+    if (!dragState.active) return;
+    const touch = e.changedTouches[0];
+    endDrag(touch.clientX, touch.clientY);
+}
+
+function endDrag(clientX, clientY) {
+    const nodeEl = dragState.nodeElement;
+    if (!nodeEl) return;
+
+    // Calculate distance moved
+    const dx = clientX - dragState.startClientX;
+    const dy = clientY - dragState.startClientY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // If minimal movement, treat as click (works in both modes)
+    if (distance < DRAG_THRESHOLD) {
+        showNodeDetail(dragState.nodeId);
+    }
+
+    // Clean up drag state (only relevant if in design mode)
+    if (dragState.active) {
+        nodeEl.classList.remove('dragging');
+        nodeEl.style.zIndex = '10';
+
+        setTimeout(() => {
+            dragState.active = false;
+        }, 100);
+    }
+
+    // Reset tracking
+    dragState.nodeElement = null;
+    dragState.nodeId = null;
+}
+
+// ============================================
+// Node Detail Panel
+// ============================================
 
 function showNodeDetail(nodeId) {
     const node = config.nodes[nodeId];
     if (!node) return;
 
     const panel = document.getElementById('node-detail');
-    const tasks = calc.getTaskBreakdown(nodeId, state.inputs.households);
+    const tasks = calc.getTaskBreakdown(nodeId, 15); // Static 15 households
 
     // Populate panel
     document.getElementById('detail-icon').textContent = node.icon;
@@ -212,7 +271,7 @@ function setupDetailPanelListeners() {
 
     // Close on click outside
     document.addEventListener('click', (e) => {
-        if (!panel.contains(e.target) && !e.target.closest('.node')) {
+        if (!panel.contains(e.target) && !e.target.closest('.node') && !dragState.active) {
             panel.classList.add('hidden');
         }
     });
@@ -223,35 +282,6 @@ function setupDetailPanelListeners() {
             panel.classList.add('hidden');
         }
     });
-}
-
-// ============================================
-// Capital Costs
-// ============================================
-
-function renderCapitalCosts() {
-    const container = document.getElementById('capital-costs');
-    let total = 0;
-
-    config.capitalCosts.forEach(item => {
-        const row = document.createElement('div');
-        row.className = 'capital-cost-row';
-        row.innerHTML = `
-            <span>${item.item}</span>
-            <span>$${item.cost}</span>
-        `;
-        container.appendChild(row);
-        total += item.cost;
-    });
-
-    // Total row
-    const totalRow = document.createElement('div');
-    totalRow.className = 'capital-cost-row total';
-    totalRow.innerHTML = `
-        <span>Total Setup</span>
-        <span>$${total}</span>
-    `;
-    container.appendChild(totalRow);
 }
 
 // ============================================

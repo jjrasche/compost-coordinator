@@ -1,0 +1,669 @@
+2026-02-01T16:11:58.580Z - === Global Hook Invoked ===
+2026-02-01T16:11:58.589Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:11:58.590Z - Tool: Glob
+2026-02-01T16:11:58.591Z - Decision: allow - Auto-approved Glob
+2026-02-01T16:11:58.944Z - === Global Hook Invoked ===
+2026-02-01T16:11:58.952Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:11:58.954Z - Tool: Glob
+2026-02-01T16:11:58.956Z - Decision: allow - Auto-approved Glob
+2026-02-01T16:20:24.431Z - === Global Hook Invoked ===
+2026-02-01T16:20:24.439Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:20:24.442Z - Tool: WebSearch
+2026-02-01T16:20:24.444Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T16:20:25.040Z - === Global Hook Invoked ===
+2026-02-01T16:20:25.048Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:20:25.050Z - Tool: WebSearch
+2026-02-01T16:20:25.053Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T16:21:04.141Z - === Global Hook Invoked ===
+2026-02-01T16:21:04.150Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:21:04.152Z - Tool: WebSearch
+2026-02-01T16:21:04.154Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T16:21:04.878Z - === Global Hook Invoked ===
+2026-02-01T16:21:04.888Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:21:04.890Z - Tool: WebSearch
+2026-02-01T16:21:04.892Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T16:37:26.665Z - === Global Hook Invoked ===
+2026-02-01T16:37:26.674Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:37:26.676Z - Tool: WebSearch
+2026-02-01T16:37:26.679Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T16:37:27.213Z - === Global Hook Invoked ===
+2026-02-01T16:37:27.221Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:37:27.223Z - Tool: WebSearch
+2026-02-01T16:37:27.225Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T16:37:28.077Z - === Global Hook Invoked ===
+2026-02-01T16:37:28.085Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:37:28.086Z - Tool: WebSearch
+2026-02-01T16:37:28.089Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T16:38:07.515Z - === Global Hook Invoked ===
+2026-02-01T16:38:07.529Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:38:07.531Z - Tool: WebSearch
+2026-02-01T16:38:07.534Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T16:38:08.044Z - === Global Hook Invoked ===
+2026-02-01T16:38:08.055Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:38:08.058Z - Tool: WebSearch
+2026-02-01T16:38:08.063Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T16:38:44.175Z - === Global Hook Invoked ===
+2026-02-01T16:38:44.189Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T16:38:44.190Z - Tool: TodoWrite
+2026-02-01T16:38:44.192Z - Decision: allow - Auto-approved TodoWrite
+2026-02-01T18:15:04.387Z - === Global Hook Invoked ===
+2026-02-01T18:15:04.395Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T18:15:04.396Z - Tool: WebSearch
+2026-02-01T18:15:04.398Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T18:15:05.772Z - === Global Hook Invoked ===
+2026-02-01T18:15:05.779Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T18:15:05.780Z - Tool: WebSearch
+2026-02-01T18:15:05.782Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T18:15:33.592Z - === Global Hook Invoked ===
+2026-02-01T18:15:33.602Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T18:15:33.605Z - Tool: WebSearch
+2026-02-01T18:15:33.607Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T18:15:56.754Z - === Global Hook Invoked ===
+2026-02-01T18:15:56.762Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T18:15:56.764Z - Tool: TodoWrite
+2026-02-01T18:15:56.765Z - Decision: allow - Auto-approved TodoWrite
+2026-02-01T18:28:36.098Z - === Global Hook Invoked ===
+2026-02-01T18:28:36.110Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T18:28:36.114Z - Tool: WebSearch
+2026-02-01T18:28:36.116Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T18:28:36.846Z - === Global Hook Invoked ===
+2026-02-01T18:28:36.854Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T18:28:36.856Z - Tool: WebSearch
+2026-02-01T18:28:36.858Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T18:28:37.721Z - === Global Hook Invoked ===
+2026-02-01T18:28:37.728Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T18:28:37.729Z - Tool: WebSearch
+2026-02-01T18:28:37.732Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T18:57:40.929Z - === Global Hook Invoked ===
+2026-02-01T18:57:40.937Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T18:57:40.939Z - Tool: WebSearch
+2026-02-01T18:57:40.941Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T18:58:02.378Z - === Global Hook Invoked ===
+2026-02-01T18:58:02.384Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T18:58:02.385Z - Tool: WebSearch
+2026-02-01T18:58:02.387Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T18:58:21.071Z - === Global Hook Invoked ===
+2026-02-01T18:58:21.076Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T18:58:21.078Z - Tool: WebSearch
+2026-02-01T18:58:21.080Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T18:58:49.976Z - === Global Hook Invoked ===
+2026-02-01T18:58:49.980Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T18:58:49.983Z - Tool: TodoWrite
+2026-02-01T18:58:49.984Z - Decision: allow - Auto-approved TodoWrite
+2026-02-01T19:03:44.135Z - === Global Hook Invoked ===
+2026-02-01T19:03:44.140Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:03:44.141Z - Tool: Glob
+2026-02-01T19:03:44.142Z - Decision: allow - Auto-approved Glob
+2026-02-01T19:03:48.681Z - === Global Hook Invoked ===
+2026-02-01T19:03:48.690Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:03:48.691Z - Tool: Bash
+2026-02-01T19:03:48.694Z - Decision: allow - Bash command
+2026-02-01T19:06:04.987Z - === Global Hook Invoked ===
+2026-02-01T19:06:04.994Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:06:04.996Z - Tool: Bash
+2026-02-01T19:06:04.999Z - Decision: allow - Safe read-only command
+2026-02-01T19:06:16.372Z - === Global Hook Invoked ===
+2026-02-01T19:06:16.389Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:06:16.391Z - Tool: Bash
+2026-02-01T19:06:16.396Z - Decision: allow - Safe read-only command
+2026-02-01T19:06:28.565Z - === Global Hook Invoked ===
+2026-02-01T19:06:28.574Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:06:28.576Z - Tool: Bash
+2026-02-01T19:06:28.578Z - Decision: allow - Safe read-only command
+2026-02-01T19:06:38.945Z - === Global Hook Invoked ===
+2026-02-01T19:06:38.954Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:06:38.956Z - Tool: Bash
+2026-02-01T19:06:38.959Z - Decision: allow - Safe read-only command
+2026-02-01T19:06:50.193Z - === Global Hook Invoked ===
+2026-02-01T19:06:50.204Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:06:50.206Z - Tool: Read
+2026-02-01T19:06:50.209Z - Decision: allow - Auto-approved Read
+2026-02-01T19:06:51.187Z - === Global Hook Invoked ===
+2026-02-01T19:06:51.193Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:06:51.195Z - Tool: Read
+2026-02-01T19:06:51.196Z - Decision: allow - Auto-approved Read
+2026-02-01T19:06:56.453Z - === Global Hook Invoked ===
+2026-02-01T19:06:56.464Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:06:56.465Z - Tool: Read
+2026-02-01T19:06:56.468Z - Decision: allow - Auto-approved Read
+2026-02-01T19:06:57.512Z - === Global Hook Invoked ===
+2026-02-01T19:06:57.523Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:06:57.527Z - Tool: Read
+2026-02-01T19:06:57.529Z - Decision: allow - Auto-approved Read
+2026-02-01T19:07:06.929Z - === Global Hook Invoked ===
+2026-02-01T19:07:06.938Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:07:06.940Z - Tool: TodoWrite
+2026-02-01T19:07:06.943Z - Decision: allow - Auto-approved TodoWrite
+2026-02-01T19:27:10.574Z - === Global Hook Invoked ===
+2026-02-01T19:27:10.582Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:27:10.584Z - Tool: WebSearch
+2026-02-01T19:27:10.586Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T19:35:35.472Z - === Global Hook Invoked ===
+2026-02-01T19:35:35.481Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:35:35.483Z - Tool: Write
+2026-02-01T19:35:35.487Z - Decision: ask - New documentation file requires approval: hazy-finding-sunrise.md
+
+ASD Policy §8: Foundational docs (README, ARCHITECTURE, DECISIONS, ADRs) require approval for creation and editing.
+2026-02-01T19:35:46.271Z - === Global Hook Invoked ===
+2026-02-01T19:35:46.279Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:35:46.280Z - Tool: AskUserQuestion
+2026-02-01T19:35:46.281Z - Decision: allow - Auto-approved AskUserQuestion
+2026-02-01T19:38:08.692Z - === Global Hook Invoked ===
+2026-02-01T19:38:08.712Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:38:08.717Z - Tool: Edit
+2026-02-01T19:38:08.725Z - Decision: allow - Write to non-sensitive file
+2026-02-01T19:38:15.582Z - === Global Hook Invoked ===
+2026-02-01T19:38:15.592Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:38:15.593Z - Tool: ExitPlanMode
+2026-02-01T19:38:15.595Z - Decision: allow - Auto-approved ExitPlanMode
+2026-02-01T19:41:01.608Z - === Global Hook Invoked ===
+2026-02-01T19:41:01.616Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:41:01.617Z - Tool: TodoWrite
+2026-02-01T19:41:01.618Z - Decision: allow - Auto-approved TodoWrite
+2026-02-01T19:41:09.160Z - === Global Hook Invoked ===
+2026-02-01T19:41:09.167Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:41:09.168Z - Tool: Bash
+2026-02-01T19:41:09.171Z - Decision: allow - Bash command
+2026-02-01T19:41:44.121Z - === Global Hook Invoked ===
+2026-02-01T19:41:44.127Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:41:44.128Z - Tool: Write
+2026-02-01T19:41:44.130Z - Decision: allow - Write to non-sensitive file
+2026-02-01T19:43:21.622Z - === Global Hook Invoked ===
+2026-02-01T19:43:21.628Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:43:21.630Z - Tool: Write
+2026-02-01T19:43:21.632Z - Decision: allow - Write to non-sensitive file
+2026-02-01T19:44:07.717Z - === Global Hook Invoked ===
+2026-02-01T19:44:07.724Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:44:07.726Z - Tool: Write
+2026-02-01T19:44:07.728Z - Decision: allow - Write to non-sensitive file
+2026-02-01T19:44:18.779Z - === Global Hook Invoked ===
+2026-02-01T19:44:18.783Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:44:18.784Z - Tool: TodoWrite
+2026-02-01T19:44:18.785Z - Decision: allow - Auto-approved TodoWrite
+2026-02-01T19:45:11.395Z - === Global Hook Invoked ===
+2026-02-01T19:45:11.404Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:45:11.406Z - Tool: Write
+2026-02-01T19:45:11.408Z - Decision: allow - Write to non-sensitive file
+2026-02-01T19:45:23.569Z - === Global Hook Invoked ===
+2026-02-01T19:45:23.577Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:45:23.578Z - Tool: TodoWrite
+2026-02-01T19:45:23.580Z - Decision: allow - Auto-approved TodoWrite
+2026-02-01T19:45:59.663Z - === Global Hook Invoked ===
+2026-02-01T19:45:59.673Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:45:59.676Z - Tool: Write
+2026-02-01T19:45:59.679Z - Decision: allow - Write to non-sensitive file
+2026-02-01T19:46:50.547Z - === Global Hook Invoked ===
+2026-02-01T19:46:50.570Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:46:50.572Z - Tool: Write
+2026-02-01T19:46:50.576Z - Decision: allow - Write to non-sensitive file
+2026-02-01T19:47:33.767Z - === Global Hook Invoked ===
+2026-02-01T19:47:33.780Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:47:33.782Z - Tool: Write
+2026-02-01T19:47:33.785Z - Decision: allow - Write to non-sensitive file
+2026-02-01T19:48:12.838Z - === Global Hook Invoked ===
+2026-02-01T19:48:12.848Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:48:12.851Z - Tool: Write
+2026-02-01T19:48:12.855Z - Decision: allow - Write to non-sensitive file
+2026-02-01T19:48:28.048Z - === Global Hook Invoked ===
+2026-02-01T19:48:28.059Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:48:28.062Z - Tool: TodoWrite
+2026-02-01T19:48:28.064Z - Decision: allow - Auto-approved TodoWrite
+2026-02-01T19:48:38.886Z - === Global Hook Invoked ===
+2026-02-01T19:48:38.898Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:48:38.901Z - Tool: Bash
+2026-02-01T19:48:38.904Z - Decision: allow - Safe read-only command
+2026-02-01T19:48:57.784Z - === Global Hook Invoked ===
+2026-02-01T19:48:57.796Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:48:57.798Z - Tool: Bash
+2026-02-01T19:48:57.802Z - Decision: allow - Safe read-only command
+2026-02-01T19:49:17.561Z - === Global Hook Invoked ===
+2026-02-01T19:49:17.570Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:49:17.573Z - Tool: Bash
+2026-02-01T19:49:17.577Z - Decision: allow - Safe read-only command
+2026-02-01T19:49:30.633Z - === Global Hook Invoked ===
+2026-02-01T19:49:30.639Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:49:30.641Z - Tool: Bash
+2026-02-01T19:49:30.647Z - Decision: allow - Bash command
+2026-02-01T19:49:56.184Z - === Global Hook Invoked ===
+2026-02-01T19:49:56.194Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:49:56.196Z - Tool: Bash
+2026-02-01T19:49:56.200Z - Decision: allow - Safe read-only command
+2026-02-01T19:50:20.742Z - === Global Hook Invoked ===
+2026-02-01T19:50:20.764Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:50:20.766Z - Tool: Bash
+2026-02-01T19:50:20.771Z - Decision: allow - Bash command
+2026-02-01T19:50:44.735Z - === Global Hook Invoked ===
+2026-02-01T19:50:44.746Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:50:44.748Z - Tool: TodoWrite
+2026-02-01T19:50:44.750Z - Decision: allow - Auto-approved TodoWrite
+2026-02-01T19:53:37.801Z - === Global Hook Invoked ===
+2026-02-01T19:53:37.819Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:53:37.825Z - Tool: mcp__Claude_in_Chrome__tabs_context_mcp
+2026-02-01T19:53:37.830Z - Decision: ask - MCP tool requires confirmation: mcp__Claude_in_Chrome__tabs_context_mcp
+2026-02-01T19:54:04.435Z - === Global Hook Invoked ===
+2026-02-01T19:54:04.443Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:54:04.444Z - Tool: Read
+2026-02-01T19:54:04.446Z - Decision: allow - Auto-approved Read
+2026-02-01T19:54:26.070Z - === Global Hook Invoked ===
+2026-02-01T19:54:26.080Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:54:26.083Z - Tool: Grep
+2026-02-01T19:54:26.085Z - Decision: allow - Auto-approved Grep
+2026-02-01T19:54:41.011Z - === Global Hook Invoked ===
+2026-02-01T19:54:41.021Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:54:41.025Z - Tool: Read
+2026-02-01T19:54:41.028Z - Decision: allow - Auto-approved Read
+2026-02-01T19:54:58.818Z - === Global Hook Invoked ===
+2026-02-01T19:54:58.826Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T19:54:58.827Z - Tool: Edit
+2026-02-01T19:54:58.832Z - Decision: allow - Write to non-sensitive file
+2026-02-01T20:08:10.612Z - === Global Hook Invoked ===
+2026-02-01T20:08:10.624Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T20:08:10.627Z - Tool: mcp__Claude_in_Chrome__tabs_context_mcp
+2026-02-01T20:08:10.630Z - Decision: ask - MCP tool requires confirmation: mcp__Claude_in_Chrome__tabs_context_mcp
+2026-02-01T20:13:59.950Z - === Global Hook Invoked ===
+2026-02-01T20:13:59.970Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T20:13:59.973Z - Tool: WebSearch
+2026-02-01T20:13:59.977Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T20:14:00.757Z - === Global Hook Invoked ===
+2026-02-01T20:14:00.775Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T20:14:00.778Z - Tool: WebSearch
+2026-02-01T20:14:00.782Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T20:14:48.326Z - === Global Hook Invoked ===
+2026-02-01T20:14:48.348Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T20:14:48.353Z - Tool: WebSearch
+2026-02-01T20:14:48.357Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-01T20:28:05.442Z - === Global Hook Invoked ===
+2026-02-01T20:28:05.449Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T20:28:05.451Z - Tool: mcp__mcp-registry__search_mcp_registry
+2026-02-01T20:28:05.453Z - Decision: allow - MCP read-only: search_mcp_registry
+2026-02-01T20:32:17.612Z - === Global Hook Invoked ===
+2026-02-01T20:32:17.631Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T20:32:17.633Z - Tool: Bash
+2026-02-01T20:32:17.639Z - Decision: allow - Safe read-only command
+2026-02-01T20:32:49.486Z - === Global Hook Invoked ===
+2026-02-01T20:32:49.498Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T20:32:49.500Z - Tool: Bash
+2026-02-01T20:32:49.505Z - Decision: allow - Safe read-only command
+2026-02-01T20:40:45.124Z - === Global Hook Invoked ===
+2026-02-01T20:40:45.132Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T20:40:45.134Z - Tool: ExitPlanMode
+2026-02-01T20:40:45.135Z - Decision: allow - Auto-approved ExitPlanMode
+2026-02-01T20:42:34.629Z - === Global Hook Invoked ===
+2026-02-01T20:42:34.643Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T20:42:34.646Z - Tool: Edit
+2026-02-01T20:42:34.654Z - Decision: allow - Write to non-sensitive file
+2026-02-01T20:42:49.444Z - === Global Hook Invoked ===
+2026-02-01T20:42:49.467Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T20:42:49.471Z - Tool: Bash
+2026-02-01T20:42:49.482Z - Decision: allow - Safe read-only command
+2026-02-01T20:43:33.497Z - === Global Hook Invoked ===
+2026-02-01T20:43:33.513Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T20:43:33.516Z - Tool: Bash
+2026-02-01T20:43:33.524Z - Decision: allow - Safe read-only command
+2026-02-01T21:52:29.129Z - === Global Hook Invoked ===
+2026-02-01T21:52:29.147Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T21:52:29.151Z - Tool: Bash
+2026-02-01T21:52:29.157Z - Decision: allow - Bash command
+2026-02-01T21:52:53.187Z - === Global Hook Invoked ===
+2026-02-01T21:52:53.195Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T21:52:53.197Z - Tool: Bash
+2026-02-01T21:52:53.202Z - Decision: allow - Bash command
+2026-02-01T21:53:14.957Z - === Global Hook Invoked ===
+2026-02-01T21:53:14.964Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T21:53:14.966Z - Tool: Bash
+2026-02-01T21:53:14.971Z - Decision: allow - Safe read-only command
+2026-02-01T21:53:36.403Z - === Global Hook Invoked ===
+2026-02-01T21:53:36.414Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T21:53:36.417Z - Tool: Bash
+2026-02-01T21:53:36.423Z - Decision: allow - Bash command
+2026-02-01T21:54:03.984Z - === Global Hook Invoked ===
+2026-02-01T21:54:03.997Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T21:54:03.998Z - Tool: Bash
+2026-02-01T21:54:04.003Z - Decision: allow - Bash command
+2026-02-01T21:54:30.676Z - === Global Hook Invoked ===
+2026-02-01T21:54:30.688Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T21:54:30.690Z - Tool: Bash
+2026-02-01T21:54:30.696Z - Decision: allow - Safe read-only command
+2026-02-01T21:54:45.740Z - === Global Hook Invoked ===
+2026-02-01T21:54:45.747Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T21:54:45.749Z - Tool: Bash
+2026-02-01T21:54:45.754Z - Decision: allow - Bash command
+2026-02-01T22:09:43.981Z - === Global Hook Invoked ===
+2026-02-01T22:09:43.994Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T22:09:43.997Z - Tool: Read
+2026-02-01T22:09:44.001Z - Decision: allow - Auto-approved Read
+2026-02-01T22:10:00.688Z - === Global Hook Invoked ===
+2026-02-01T22:10:00.696Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T22:10:00.699Z - Tool: Edit
+2026-02-01T22:10:00.703Z - Decision: allow - Write to non-sensitive file
+2026-02-01T22:10:12.017Z - === Global Hook Invoked ===
+2026-02-01T22:10:12.027Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T22:10:12.030Z - Tool: ExitPlanMode
+2026-02-01T22:10:12.032Z - Decision: allow - Auto-approved ExitPlanMode
+2026-02-01T22:16:10.156Z - === Global Hook Invoked ===
+2026-02-01T22:16:10.168Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T22:16:10.172Z - Tool: Write
+2026-02-01T22:16:10.176Z - Decision: ask - Foundational documentation requires approval: README.md
+
+ASD Policy §8: Foundational docs (README, ARCHITECTURE, DECISIONS, ADRs) require approval for creation and editing.
+2026-02-01T23:40:24.883Z - === Global Hook Invoked ===
+2026-02-01T23:40:24.892Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:40:24.893Z - Tool: Bash
+2026-02-01T23:40:24.895Z - Decision: allow - Safe read-only command
+2026-02-01T23:41:30.973Z - === Global Hook Invoked ===
+2026-02-01T23:41:30.981Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:41:30.983Z - Tool: Edit
+2026-02-01T23:41:30.988Z - Decision: ask - Foundational documentation requires approval: README.md
+
+ASD Policy §8: Foundational docs (README, ARCHITECTURE, DECISIONS, ADRs) require approval for creation and editing.
+2026-02-01T23:42:33.667Z - === Global Hook Invoked ===
+2026-02-01T23:42:33.676Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:42:33.677Z - Tool: Bash
+2026-02-01T23:42:33.680Z - Decision: allow - Safe read-only command
+2026-02-01T23:44:53.476Z - === Global Hook Invoked ===
+2026-02-01T23:44:53.491Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:44:53.493Z - Tool: Read
+2026-02-01T23:44:53.495Z - Decision: allow - Auto-approved Read
+2026-02-01T23:44:58.014Z - === Global Hook Invoked ===
+2026-02-01T23:44:58.024Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:44:58.026Z - Tool: Glob
+2026-02-01T23:44:58.027Z - Decision: allow - Auto-approved Glob
+2026-02-01T23:45:03.844Z - === Global Hook Invoked ===
+2026-02-01T23:45:03.852Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:45:03.854Z - Tool: Read
+2026-02-01T23:45:03.855Z - Decision: allow - Auto-approved Read
+2026-02-01T23:45:08.740Z - === Global Hook Invoked ===
+2026-02-01T23:45:08.748Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:45:08.751Z - Tool: Read
+2026-02-01T23:45:08.752Z - Decision: allow - Auto-approved Read
+2026-02-01T23:45:49.084Z - === Global Hook Invoked ===
+2026-02-01T23:45:49.095Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:45:49.097Z - Tool: Edit
+2026-02-01T23:45:49.100Z - Decision: allow - Write to non-sensitive file
+2026-02-01T23:46:56.902Z - === Global Hook Invoked ===
+2026-02-01T23:46:56.912Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:46:56.914Z - Tool: Read
+2026-02-01T23:46:56.917Z - Decision: allow - Auto-approved Read
+2026-02-01T23:47:10.719Z - === Global Hook Invoked ===
+2026-02-01T23:47:10.727Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:47:10.728Z - Tool: Edit
+2026-02-01T23:47:10.734Z - Decision: allow - Write to non-sensitive file
+2026-02-01T23:47:17.199Z - === Global Hook Invoked ===
+2026-02-01T23:47:17.204Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:47:17.206Z - Tool: Glob
+2026-02-01T23:47:17.207Z - Decision: allow - Auto-approved Glob
+2026-02-01T23:47:23.315Z - === Global Hook Invoked ===
+2026-02-01T23:47:23.321Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:47:23.323Z - Tool: Read
+2026-02-01T23:47:23.325Z - Decision: allow - Auto-approved Read
+2026-02-01T23:47:30.830Z - === Global Hook Invoked ===
+2026-02-01T23:47:30.837Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:47:30.839Z - Tool: Read
+2026-02-01T23:47:30.840Z - Decision: allow - Auto-approved Read
+2026-02-01T23:47:41.857Z - === Global Hook Invoked ===
+2026-02-01T23:47:41.867Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:47:41.869Z - Tool: Edit
+2026-02-01T23:47:41.872Z - Decision: allow - Write to non-sensitive file
+2026-02-01T23:47:52.466Z - === Global Hook Invoked ===
+2026-02-01T23:47:52.473Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:47:52.474Z - Tool: Edit
+2026-02-01T23:47:52.478Z - Decision: allow - Write to non-sensitive file
+2026-02-01T23:48:00.909Z - === Global Hook Invoked ===
+2026-02-01T23:48:00.917Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:48:00.918Z - Tool: Edit
+2026-02-01T23:48:00.923Z - Decision: allow - Write to non-sensitive file
+2026-02-01T23:48:09.739Z - === Global Hook Invoked ===
+2026-02-01T23:48:09.748Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:48:09.750Z - Tool: Edit
+2026-02-01T23:48:09.754Z - Decision: allow - Write to non-sensitive file
+2026-02-01T23:48:18.912Z - === Global Hook Invoked ===
+2026-02-01T23:48:18.919Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:48:18.922Z - Tool: Edit
+2026-02-01T23:48:18.927Z - Decision: allow - Write to non-sensitive file
+2026-02-01T23:53:09.342Z - === Global Hook Invoked ===
+2026-02-01T23:53:09.365Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:53:09.368Z - Tool: Write
+2026-02-01T23:53:09.373Z - Decision: ask - New documentation file requires approval: replicated-watching-snowflake.md
+
+ASD Policy §8: Foundational docs (README, ARCHITECTURE, DECISIONS, ADRs) require approval for creation and editing.
+2026-02-01T23:53:19.894Z - === Global Hook Invoked ===
+2026-02-01T23:53:19.904Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:53:19.905Z - Tool: Task
+2026-02-01T23:53:19.907Z - Decision: allow - Auto-approved Task
+2026-02-01T23:53:22.556Z - === Global Hook Invoked ===
+2026-02-01T23:53:22.564Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:53:22.565Z - Tool: Bash
+2026-02-01T23:53:22.569Z - Decision: allow - Bash command
+2026-02-01T23:55:38.013Z - === Global Hook Invoked ===
+2026-02-01T23:55:38.020Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:55:38.022Z - Tool: Bash
+2026-02-01T23:55:38.025Z - Decision: allow - Bash command
+2026-02-01T23:55:49.566Z - === Global Hook Invoked ===
+2026-02-01T23:55:49.580Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:55:49.583Z - Tool: Bash
+2026-02-01T23:55:49.589Z - Decision: allow - Bash command
+2026-02-01T23:56:00.917Z - === Global Hook Invoked ===
+2026-02-01T23:56:00.926Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:56:00.928Z - Tool: Read
+2026-02-01T23:56:00.929Z - Decision: allow - Auto-approved Read
+2026-02-01T23:56:02.542Z - === Global Hook Invoked ===
+2026-02-01T23:56:02.551Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:56:02.553Z - Tool: Read
+2026-02-01T23:56:02.554Z - Decision: allow - Auto-approved Read
+2026-02-01T23:56:04.247Z - === Global Hook Invoked ===
+2026-02-01T23:56:04.254Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:56:04.255Z - Tool: Read
+2026-02-01T23:56:04.257Z - Decision: allow - Auto-approved Read
+2026-02-01T23:56:08.405Z - === Global Hook Invoked ===
+2026-02-01T23:56:08.413Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:56:08.416Z - Tool: Read
+2026-02-01T23:56:08.418Z - Decision: allow - Auto-approved Read
+2026-02-01T23:57:05.971Z - === Global Hook Invoked ===
+2026-02-01T23:57:05.979Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:57:05.980Z - Tool: Edit
+2026-02-01T23:57:05.985Z - Decision: allow - Write to non-sensitive file
+2026-02-01T23:57:23.464Z - === Global Hook Invoked ===
+2026-02-01T23:57:23.473Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:57:23.475Z - Tool: AskUserQuestion
+2026-02-01T23:57:23.476Z - Decision: allow - Auto-approved AskUserQuestion
+2026-02-01T23:59:19.725Z - === Global Hook Invoked ===
+2026-02-01T23:59:19.736Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:59:19.738Z - Tool: Edit
+2026-02-01T23:59:19.744Z - Decision: allow - Write to non-sensitive file
+2026-02-01T23:59:25.130Z - === Global Hook Invoked ===
+2026-02-01T23:59:25.138Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-01T23:59:25.139Z - Tool: ExitPlanMode
+2026-02-01T23:59:25.140Z - Decision: allow - Auto-approved ExitPlanMode
+2026-02-02T00:09:22.432Z - === Global Hook Invoked ===
+2026-02-02T00:09:22.445Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:09:22.447Z - Tool: TodoWrite
+2026-02-02T00:09:22.449Z - Decision: allow - Auto-approved TodoWrite
+2026-02-02T00:09:56.424Z - === Global Hook Invoked ===
+2026-02-02T00:09:56.438Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:09:56.440Z - Tool: Edit
+2026-02-02T00:09:56.446Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:10:14.137Z - === Global Hook Invoked ===
+2026-02-02T00:10:14.144Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:10:14.145Z - Tool: Edit
+2026-02-02T00:10:14.151Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:10:43.063Z - === Global Hook Invoked ===
+2026-02-02T00:10:43.070Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:10:43.072Z - Tool: Edit
+2026-02-02T00:10:43.076Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:11:00.583Z - === Global Hook Invoked ===
+2026-02-02T00:11:00.591Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:11:00.593Z - Tool: Edit
+2026-02-02T00:11:00.598Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:11:14.274Z - === Global Hook Invoked ===
+2026-02-02T00:11:14.281Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:11:14.283Z - Tool: Edit
+2026-02-02T00:11:14.286Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:11:22.510Z - === Global Hook Invoked ===
+2026-02-02T00:11:22.518Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:11:22.519Z - Tool: TodoWrite
+2026-02-02T00:11:22.522Z - Decision: allow - Auto-approved TodoWrite
+2026-02-02T00:12:25.236Z - === Global Hook Invoked ===
+2026-02-02T00:12:25.242Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:12:25.245Z - Tool: Edit
+2026-02-02T00:12:25.248Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:12:34.681Z - === Global Hook Invoked ===
+2026-02-02T00:12:34.689Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:12:34.691Z - Tool: TodoWrite
+2026-02-02T00:12:34.693Z - Decision: allow - Auto-approved TodoWrite
+2026-02-02T00:13:29.688Z - === Global Hook Invoked ===
+2026-02-02T00:13:29.698Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:13:29.701Z - Tool: Edit
+2026-02-02T00:13:29.707Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:13:39.462Z - === Global Hook Invoked ===
+2026-02-02T00:13:39.471Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:13:39.472Z - Tool: TodoWrite
+2026-02-02T00:13:39.474Z - Decision: allow - Auto-approved TodoWrite
+2026-02-02T00:25:41.487Z - === Global Hook Invoked ===
+2026-02-02T00:25:41.494Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:25:41.495Z - Tool: Read
+2026-02-02T00:25:41.496Z - Decision: allow - Auto-approved Read
+2026-02-02T00:26:14.747Z - === Global Hook Invoked ===
+2026-02-02T00:26:14.756Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:26:14.758Z - Tool: Edit
+2026-02-02T00:26:14.764Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:26:28.383Z - === Global Hook Invoked ===
+2026-02-02T00:26:28.391Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:26:28.393Z - Tool: AskUserQuestion
+2026-02-02T00:26:28.396Z - Decision: allow - Auto-approved AskUserQuestion
+2026-02-02T00:27:53.112Z - === Global Hook Invoked ===
+2026-02-02T00:27:53.126Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:27:53.128Z - Tool: Edit
+2026-02-02T00:27:53.133Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:28:01.712Z - === Global Hook Invoked ===
+2026-02-02T00:28:01.726Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:28:01.728Z - Tool: ExitPlanMode
+2026-02-02T00:28:01.731Z - Decision: allow - Auto-approved ExitPlanMode
+2026-02-02T00:30:11.257Z - === Global Hook Invoked ===
+2026-02-02T00:30:11.264Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:30:11.266Z - Tool: TodoWrite
+2026-02-02T00:30:11.268Z - Decision: allow - Auto-approved TodoWrite
+2026-02-02T00:30:25.098Z - === Global Hook Invoked ===
+2026-02-02T00:30:25.110Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:30:25.113Z - Tool: Edit
+2026-02-02T00:30:25.121Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:30:38.847Z - === Global Hook Invoked ===
+2026-02-02T00:30:38.858Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:30:38.860Z - Tool: Edit
+2026-02-02T00:30:38.869Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:30:51.391Z - === Global Hook Invoked ===
+2026-02-02T00:30:51.405Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:30:51.408Z - Tool: Edit
+2026-02-02T00:30:51.415Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:31:01.697Z - === Global Hook Invoked ===
+2026-02-02T00:31:01.704Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:31:01.707Z - Tool: Edit
+2026-02-02T00:31:01.712Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:31:11.410Z - === Global Hook Invoked ===
+2026-02-02T00:31:11.421Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:31:11.424Z - Tool: TodoWrite
+2026-02-02T00:31:11.428Z - Decision: allow - Auto-approved TodoWrite
+2026-02-02T00:31:35.092Z - === Global Hook Invoked ===
+2026-02-02T00:31:35.099Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:31:35.101Z - Tool: Edit
+2026-02-02T00:31:35.108Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:32:09.266Z - === Global Hook Invoked ===
+2026-02-02T00:32:09.275Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:32:09.277Z - Tool: Edit
+2026-02-02T00:32:09.282Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:32:18.655Z - === Global Hook Invoked ===
+2026-02-02T00:32:18.666Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:32:18.667Z - Tool: Read
+2026-02-02T00:32:18.668Z - Decision: allow - Auto-approved Read
+2026-02-02T00:32:43.726Z - === Global Hook Invoked ===
+2026-02-02T00:32:43.735Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:32:43.737Z - Tool: Edit
+2026-02-02T00:32:43.741Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:32:56.214Z - === Global Hook Invoked ===
+2026-02-02T00:32:56.220Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:32:56.222Z - Tool: Edit
+2026-02-02T00:32:56.227Z - Decision: allow - Write to non-sensitive file
+2026-02-02T00:33:06.072Z - === Global Hook Invoked ===
+2026-02-02T00:33:06.080Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T00:33:06.081Z - Tool: TodoWrite
+2026-02-02T00:33:06.083Z - Decision: allow - Auto-approved TodoWrite
+2026-02-02T01:07:45.154Z - === Global Hook Invoked ===
+2026-02-02T01:07:45.162Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:07:45.164Z - Tool: Bash
+2026-02-02T01:07:45.167Z - Decision: allow - Safe read-only command
+2026-02-02T01:07:45.753Z - === Global Hook Invoked ===
+2026-02-02T01:07:45.759Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:07:45.761Z - Tool: Bash
+2026-02-02T01:07:45.763Z - Decision: allow - Safe read-only command
+2026-02-02T01:07:46.224Z - === Global Hook Invoked ===
+2026-02-02T01:07:46.231Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:07:46.232Z - Tool: Bash
+2026-02-02T01:07:46.235Z - Decision: allow - Safe read-only command
+2026-02-02T01:08:09.627Z - === Global Hook Invoked ===
+2026-02-02T01:08:09.634Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:08:09.636Z - Tool: Read
+2026-02-02T01:08:09.637Z - Decision: allow - Auto-approved Read
+2026-02-02T01:08:14.345Z - === Global Hook Invoked ===
+2026-02-02T01:08:14.352Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:08:14.353Z - Tool: Bash
+2026-02-02T01:08:14.357Z - Decision: allow - Bash command
+2026-02-02T01:08:21.535Z - === Global Hook Invoked ===
+2026-02-02T01:08:21.543Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:08:21.544Z - Tool: Bash
+2026-02-02T01:08:21.549Z - Decision: allow - Bash command
+2026-02-02T01:08:28.809Z - === Global Hook Invoked ===
+2026-02-02T01:08:28.818Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:08:28.819Z - Tool: Bash
+2026-02-02T01:08:28.822Z - Decision: allow - Safe read-only command
+2026-02-02T01:08:40.611Z - === Global Hook Invoked ===
+2026-02-02T01:08:40.617Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:08:40.618Z - Tool: Read
+2026-02-02T01:08:40.620Z - Decision: allow - Auto-approved Read
+2026-02-02T01:08:48.503Z - === Global Hook Invoked ===
+2026-02-02T01:08:48.507Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:08:48.508Z - Tool: Read
+2026-02-02T01:08:48.510Z - Decision: allow - Auto-approved Read
+2026-02-02T01:08:57.023Z - === Global Hook Invoked ===
+2026-02-02T01:08:57.028Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:08:57.029Z - Tool: Edit
+2026-02-02T01:08:57.035Z - Decision: allow - Write to non-sensitive file
+2026-02-02T01:09:02.112Z - === Global Hook Invoked ===
+2026-02-02T01:09:02.121Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:09:02.122Z - Tool: Bash
+2026-02-02T01:09:02.125Z - Decision: allow - Safe read-only command
+2026-02-02T01:09:12.712Z - === Global Hook Invoked ===
+2026-02-02T01:09:12.719Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:09:12.721Z - Tool: Bash
+2026-02-02T01:09:12.724Z - Decision: allow - Safe read-only command
+2026-02-02T01:09:28.032Z - === Global Hook Invoked ===
+2026-02-02T01:09:28.038Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:09:28.040Z - Tool: Bash
+2026-02-02T01:09:28.042Z - Decision: ask - Potentially dangerous: git add app.js && git commit -m "$(cat <<'EOF'
+Fix...
+2026-02-02T01:13:09.113Z - === Global Hook Invoked ===
+2026-02-02T01:13:09.118Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:13:09.120Z - Tool: Bash
+2026-02-02T01:13:09.122Z - Decision: allow - Safe read-only command
+2026-02-02T01:47:43.658Z - === Global Hook Invoked ===
+2026-02-02T01:47:43.666Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:47:43.668Z - Tool: Read
+2026-02-02T01:47:43.670Z - Decision: allow - Auto-approved Read
+2026-02-02T01:47:48.712Z - === Global Hook Invoked ===
+2026-02-02T01:47:48.720Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:47:48.722Z - Tool: WebSearch
+2026-02-02T01:47:48.723Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-02T01:48:09.897Z - === Global Hook Invoked ===
+2026-02-02T01:48:09.904Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T01:48:09.907Z - Tool: WebSearch
+2026-02-02T01:48:09.909Z - Decision: allow - WebSearch with time-aware query enrichment
+2026-02-02T02:07:36.577Z - === Global Hook Invoked ===
+2026-02-02T02:07:36.584Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T02:07:36.586Z - Tool: Read
+2026-02-02T02:07:36.587Z - Decision: allow - Auto-approved Read
+2026-02-02T02:07:44.631Z - === Global Hook Invoked ===
+2026-02-02T02:07:44.637Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T02:07:44.638Z - Tool: Edit
+2026-02-02T02:07:44.642Z - Decision: allow - Write to non-sensitive file
+2026-02-02T02:07:50.415Z - === Global Hook Invoked ===
+2026-02-02T02:07:50.426Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T02:07:50.429Z - Tool: Bash
+2026-02-02T02:07:50.435Z - Decision: allow - Safe read-only command

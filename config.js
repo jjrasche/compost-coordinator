@@ -39,7 +39,7 @@ export default {
 			label: 'Households',
 			category: 'input',
 			icon: '🏠',
-			position: { "x": 0.5722005162858922, "y": 0.14180990134128837 },
+			position: { "x": 0.5722005162858922, "y": .14 },
 			description: 'Participating households that provide food waste and cardboard',
 			metrics: ['homes', 'gal/week input'],
 			tasks: []
@@ -49,7 +49,7 @@ export default {
 			label: 'Collection',
 			category: 'labor',
 			icon: '🚛',
-			position: { "x": 0.34160155978519474, "y": 0.14204545454545456 },
+			position: { "x": 0.34160155978519474, "y": .14 },
 			description: 'Weekly pickup of food waste and cardboard from households',
 			metrics: ['hr/mo', 'stops'],
 			tasks: [
@@ -65,7 +65,7 @@ export default {
 			label: 'Cardboard Processing',
 			category: 'labor',
 			icon: '📦',
-			position: { "x": 0.1875, "y": 0.14534883496678744 },
+			position: { "x": 0.17, "y": .14 },
 			description: 'Break down, shred, and prepare cardboard for composting',
 			metrics: ['hr/mo', 'gal/week'],
 			tasks: [
@@ -92,7 +92,7 @@ export default {
 			label: 'Stage 1: Active',
 			category: 'composting',
 			icon: '🔥',
-			position: { "x": 0.18098958333333334, "y": 0.5927704660819418 },
+			position: { "x": 0.17, "y": .55 },
 			description: 'Hot composting phase - thermophilic bacteria break down material at 130-160°F',
 			metrics: ['weeks', 'gal capacity'],
 			tasks: [
@@ -105,7 +105,7 @@ export default {
 			label: 'Stage 2: Cooling',
 			category: 'composting',
 			icon: '🌡️',
-			position: { "x": 0.31640625, "y": 0.5889787573436779 },
+			position: { "x": 0.31640625, "y": .55 },
 			description: 'Temperature drops, mesophilic bacteria take over',
 			metrics: ['weeks'],
 			tasks: [
@@ -118,7 +118,7 @@ export default {
 			label: 'Stage 3: Worms',
 			category: 'composting',
 			icon: '🪱',
-			position: { "x": 0.4524739583333333, "y": 0.5851870486054138 },
+			position: { "x": 0.4524739583333333, "y": .55 },
 			description: 'Worms enter and process material into castings',
 			metrics: ['weeks', 'worm activity'],
 			tasks: [
@@ -131,7 +131,7 @@ export default {
 			label: 'Stage 4: Harvest',
 			category: 'composting',
 			icon: '🌱',
-			position: { "x": 0.6028645833333334, "y": 0.5813953398671498 },
+			position: { "x": 0.6028645833333334, "y": .55 },
 			description: 'Spread, expose to light, harvest finished vermicompost',
 			metrics: ['gal/mo', 'worm return'],
 			tasks: [
@@ -142,10 +142,10 @@ export default {
 		},
 		tea: {
 			id: 'tea',
-			label: 'Worm Tea Brewing',
+			label: 'Brew Worm Tea',
 			category: 'processing',
 			icon: '💧',
-			position: { "x": 0.6015625, "y": 0.8025783495992177 },
+			position: { "x": 0.6015625, "y": .55 },
 			description: 'Brew aerated worm tea from finished castings',
 			metrics: ['gal/mo', 'brew cycles'],
 			tasks: [
@@ -173,7 +173,7 @@ export default {
 			label: 'Purchasers',
 			category: 'output',
 			icon: '🏡',
-			position: { "x": 0.8001302083333334, "y": 0.13902932040301408 },
+			position: { "x": 0.8001302083333334, "y": .14 },
 			description: 'External buyers purchasing finished compost and worm tea',
 			metrics: ['buyers', '$/mo revenue'],
 			tasks: []
@@ -191,7 +191,6 @@ export default {
 			to: 'collection',
 			material: 'food',
 			icon: '🍎',
-			label: 'food waste (weekly)',
 			color: '#22c55e'
 		},
 		{
@@ -200,7 +199,6 @@ export default {
 			to: 'foodWasteProcessing',
 			material: 'food',
 			icon: '🍎',
-			label: '(weekly)',
 			color: '#22c55e'
 		},
 		{
@@ -209,7 +207,6 @@ export default {
 			to: 'stage1',
 			material: 'food',
 			icon: '🍎',
-			label: '(weekly)',
 			color: '#22c55e'
 		},
 		
@@ -220,7 +217,6 @@ export default {
 			to: 'collection',
 			material: 'cardboard',
 			icon: '📦',
-			label: 'cardboard (weekly)',
 			color: '#f59e0b'
 		},
 		{
@@ -229,7 +225,6 @@ export default {
 			to: 'cardboard',
 			material: 'cardboard',
 			icon: '📦',
-			label: '(weekly)',
 			color: '#f59e0b'
 		},
 		{
@@ -238,7 +233,6 @@ export default {
 			to: 'stage1',
 			material: 'cardboard',
 			icon: '📦',
-			label: 'shredded (weekly)',
 			color: '#f59e0b'
 		},
 		
@@ -249,7 +243,6 @@ export default {
 			to: 'stage2',
 			material: 'compost',
 			icon: '🌱',
-			label: '(monthly)',
 			color: '#84cc16'
 		},
 		{
@@ -258,7 +251,6 @@ export default {
 			to: 'stage3',
 			material: 'compost',
 			icon: '🌱',
-			label: '(monthly)',
 			color: '#84cc16'
 		},
 		{
@@ -267,7 +259,6 @@ export default {
 			to: 'stage4',
 			material: 'compost',
 			icon: '🌱',
-			label: '(monthly)',
 			color: '#84cc16'
 		},
 		
@@ -290,7 +281,7 @@ export default {
 			to: 'tea',
 			material: 'castings',
 			icon: '🌱',
-			label: 'castings (monthly)',
+			label: 'castings',
 			color: '#06b6d4'
 		},
 		{
@@ -299,7 +290,7 @@ export default {
 			to: 'delivery',
 			material: 'tea',
 			icon: '💧',
-			label: 'worm tea (monthly)',
+			label: 'worm tea',
 			color: '#06b6d4'
 		},
 		
@@ -310,7 +301,6 @@ export default {
 			to: 'delivery',
 			material: 'compost',
 			icon: '🌱',
-			label: 'finished compost (monthly)',
 			color: '#84cc16'
 		},
 		{
@@ -319,7 +309,6 @@ export default {
 			to: 'purchasers',
 			material: 'products',
 			icon: '🌱',
-			label: '(monthly)',
 			color: '#84cc16'
 		},
 		{
@@ -328,7 +317,7 @@ export default {
 			to: 'households',
 			material: 'compost',
 			icon: '🌱',
-			label: 'compost returns (monthly)',
+			label: 'compost returns',
 			color: '#22c55e'
 		}
 	],

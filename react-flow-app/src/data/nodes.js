@@ -37,36 +37,29 @@ export const initialNodes = [
     }
   },
   {
-    id: 'cardboard',
+    id: 'brownsStore',
     type: 'compostNode',
-    position: { x: 100, y: 160 },
+    position: { x: 100, y: 420 },
     data: {
-      label: 'Cardboard Processing',
+      label: 'Browns Store',
       category: 'labor',
       icon: '📦',
-      description: 'Break down, shred, and prepare cardboard for composting',
-      metrics: ['10 hr/mo', '50 gal/week'],
-      tasks: [
-        { name: 'Break down + remove plastic', minPerWeek: 90 },
-        { name: 'Shred', minPerWeek: 45 },
-        { name: 'Bag/containerize', minPerWeek: 15 }
-      ]
+      description: 'Carbon-rich materials storage (shredded cardboard)',
+      metrics: ['50 gal/week'],
+      tasks: []
     }
   },
   {
-    id: 'foodWasteProcessing',
+    id: 'greensStore',
     type: 'compostNode',
-    position: { x: 220, y: 420 },
+    position: { x: 280, y: 420 },
     data: {
-      label: 'Food Waste Processing',
+      label: 'Greens Store',
       category: 'labor',
       icon: '🍎',
-      description: 'Sort, prepare, and measure food waste before composting',
-      metrics: ['3 hr/mo'],
-      tasks: [
-        { name: 'Sort and clean', minPerWeek: 30 },
-        { name: 'Measure quantities', minPerWeek: 15 }
-      ]
+      description: 'Nitrogen-rich materials storage (food waste, grass clippings)',
+      metrics: ['150 gal/week'],
+      tasks: []
     }
   },
   {
@@ -149,22 +142,6 @@ export const initialNodes = [
         { name: 'Set up brew', minPerMonth: 20 },
         { name: 'Load brew vat', minPerMonth: 15 },
         { name: 'Apply at customer sites', minPerMonth: 50 }
-      ]
-    }
-  },
-  {
-    id: 'delivery',
-    type: 'compostNode',
-    position: { x: 680, y: 440 },
-    data: {
-      label: 'Delivery',
-      category: 'labor',
-      icon: '🚚',
-      description: 'Load truck, deliver to customers, apply worm tea',
-      metrics: ['6 hr/mo', '10 stops'],
-      tasks: [
-        { name: 'Load truck', minPerMonth: 60 },
-        { name: 'Customer stops', minPerMonth: 300 }
       ]
     }
   },

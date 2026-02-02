@@ -1289,3 +1289,27 @@ ASD Policy §8: Foundational docs (README, ARCHITECTURE, DECISIONS, ADRs) requir
 2026-02-02T16:51:58.997Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
 2026-02-02T16:51:59.000Z - Tool: Bash
 2026-02-02T16:51:59.007Z - Decision: allow - Safe read-only command
+2026-02-02T16:57:49.971Z - === Global Hook Invoked ===
+2026-02-02T16:57:49.979Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T16:57:49.981Z - Tool: Edit
+2026-02-02T16:57:49.988Z - Decision: allow - Write to non-sensitive file
+2026-02-02T16:58:03.395Z - === Global Hook Invoked ===
+2026-02-02T16:58:03.427Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T16:58:03.432Z - Tool: Edit
+2026-02-02T16:58:03.453Z - Decision: allow - Write to non-sensitive file
+2026-02-02T16:58:28.056Z - === Global Hook Invoked ===
+2026-02-02T16:58:28.070Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T16:58:28.073Z - Tool: Edit
+2026-02-02T16:58:28.085Z - Decision: allow - Write to non-sensitive file
+2026-02-02T16:58:49.846Z - === Global Hook Invoked ===
+2026-02-02T16:58:49.867Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T16:58:49.871Z - Tool: Edit
+2026-02-02T16:58:49.885Z - Decision: allow - Write to non-sensitive file
+2026-02-02T16:59:25.487Z - === Global Hook Invoked ===
+2026-02-02T16:59:25.501Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T16:59:25.507Z - Tool: Edit
+2026-02-02T16:59:25.518Z - Decision: allow - Write to non-sensitive file
+2026-02-02T16:59:44.837Z - === Global Hook Invoked ===
+2026-02-02T16:59:44.849Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T16:59:44.852Z - Tool: Bash
+2026-02-02T16:59:44.859Z - Decision: allow - Safe read-only command

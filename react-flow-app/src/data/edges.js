@@ -43,15 +43,15 @@ export const initialEdges = [
   },
 
   {
-    id: 'food-collection-processing',
+    id: 'food-collection-greens',
     source: 'collection',
-    target: 'foodWasteProcessing',
+    target: 'greensStore',
     type: 'animatedEdge',
     sourcePosition: 'bottom',
     targetPosition: 'top',
     data: {
-      icons: ['🍎'],  // Food waste
-      description: 'Food waste moved to processing area',
+      icons: ['🍎'],  // Food waste to greens store
+      description: 'Food waste sorted and stored in greens pile',
       tasks: [
         { name: 'Sort and clean', minPerWeek: 30 },
         { name: 'Measure quantities', minPerWeek: 15 }
@@ -65,32 +65,32 @@ export const initialEdges = [
         amount: 150,
         unit: 'gal/week'
       },
-      strokeWidth: 3,
-      animationDuration: 2
+      strokeWidth: 4,
+      animationDuration: 1.5
     },
     style: {
-      strokeWidth: 3,
+      strokeWidth: 4,
       stroke: '#22c55e'
     }
   },
 
   {
-    id: 'food-processing-stage1',
-    source: 'foodWasteProcessing',
+    id: 'greens-stage1',
+    source: 'greensStore',
     target: 'stage1',
     type: 'animatedEdge',
     sourcePosition: 'bottom',
     targetPosition: 'top',
     data: {
-      icons: ['🍎'],  // Food waste to stage 1
-      description: 'Prepared food waste added to active composting',
+      icons: ['🍎'],  // Greens to Stage 1
+      description: 'Nitrogen-rich materials added to hot composting',
       tasks: [
-        { name: 'Add materials to Stage 1', minPerWeek: 30 }
+        { name: 'Add greens to Stage 1', minPerWeek: 15 }
       ],
       frequency: {
         value: 1,
         unit: 'weekly',
-        hoursPerPeriod: 0.5
+        hoursPerPeriod: 0.25
       },
       volume: {
         amount: 150,
@@ -140,43 +140,15 @@ export const initialEdges = [
   },
 
   {
-    id: 'cardboard-collection-processing',
+    id: 'cardboard-collection-browns',
     source: 'collection',
-    target: 'cardboard',
-    type: 'animatedEdge',
-    sourcePosition: 'left',
-    targetPosition: 'right',
-    data: {
-      icons: ['📦'],  // Cardboard boxes
-      description: 'Cardboard moved to processing area',
-      frequency: {
-        value: 1,
-        unit: 'weekly',
-        hoursPerPeriod: 0
-      },
-      volume: {
-        amount: 50,
-        unit: 'boxes/week'
-      },
-      strokeWidth: 3,
-      animationDuration: 2
-    },
-    style: {
-      strokeWidth: 3,
-      stroke: '#f59e0b'
-    }
-  },
-
-  {
-    id: 'cardboard-processing-stage1',
-    source: 'cardboard',
-    target: 'stage1',
+    target: 'brownsStore',
     type: 'animatedEdge',
     sourcePosition: 'bottom',
     targetPosition: 'top',
     data: {
       icons: ['✂️', '📄'],  // Shredding work → shredded cardboard
-      description: 'Cardboard shredding and added to composting',
+      description: 'Cardboard broken down, shredded, and stored in browns pile',
       tasks: [
         { name: 'Break down + remove plastic', minPerWeek: 90 },
         { name: 'Shred', minPerWeek: 45 },
@@ -186,6 +158,37 @@ export const initialEdges = [
         value: 1,
         unit: 'weekly',
         hoursPerPeriod: 2.5
+      },
+      volume: {
+        amount: 50,
+        unit: 'boxes/week'
+      },
+      strokeWidth: 4,
+      animationDuration: 1.5
+    },
+    style: {
+      strokeWidth: 4,
+      stroke: '#f59e0b'
+    }
+  },
+
+  {
+    id: 'browns-stage1',
+    source: 'brownsStore',
+    target: 'stage1',
+    type: 'animatedEdge',
+    sourcePosition: 'bottom',
+    targetPosition: 'top',
+    data: {
+      icons: ['📄'],  // Browns to Stage 1
+      description: 'Carbon-rich materials added to hot composting',
+      tasks: [
+        { name: 'Add browns to Stage 1', minPerWeek: 15 }
+      ],
+      frequency: {
+        value: 1,
+        unit: 'weekly',
+        hoursPerPeriod: 0.25
       },
       volume: {
         amount: 50,
@@ -366,62 +369,32 @@ export const initialEdges = [
     }
   },
 
-  {
-    id: 'tea-tea-delivery',
-    source: 'tea',
-    target: 'delivery',
-    type: 'animatedEdge',
-    sourcePosition: 'top',
-    targetPosition: 'bottom',
-    data: {
-      icons: ['🫖', '💧'],  // Brewing work → worm tea
-      description: 'Brewed worm tea ready for delivery',
-      tasks: [
-        { name: 'Set up brew', minPerMonth: 20 },
-        { name: 'Load brew vat', minPerMonth: 15 }
-      ],
-      frequency: {
-        value: 1,
-        unit: 'monthly',
-        hoursPerPeriod: 0.58
-      },
-      volume: {
-        amount: 20,
-        unit: 'gal tea/month'
-      },
-      strokeWidth: 3,
-      animationDuration: 2.5
-    },
-    style: {
-      strokeWidth: 3,
-      stroke: '#06b6d4'
-    }
-  },
-
   // ========================================
-  // Delivery flows
+  // Output flows (direct to customers)
   // ========================================
   {
-    id: 'compost-stage4-delivery',
+    id: 'stage4-purchasers',
     source: 'stage4',
-    target: 'delivery',
+    target: 'purchasers',
     type: 'animatedEdge',
     sourcePosition: 'top',
-    targetPosition: 'bottom',
+    targetPosition: 'left',
     data: {
-      icons: ['🌱'],  // Harvested vermicompost
-      description: 'Finished vermicompost ready for delivery',
+      icons: ['🚚', '🌱'],  // Delivery work → harvested compost
+      description: 'Monthly delivery of finished vermicompost to paying customers',
       tasks: [
         { name: 'Spread and light expose', minPerMonth: 30 },
-        { name: 'Harvest castings', minPerMonth: 30 }
+        { name: 'Harvest castings', minPerMonth: 30 },
+        { name: 'Load truck', minPerMonth: 60 },
+        { name: 'Customer stops (purchasers)', minPerMonth: 180 }
       ],
       frequency: {
         value: 1,
         unit: 'monthly',
-        hoursPerPeriod: 1
+        hoursPerPeriod: 5
       },
       volume: {
-        amount: 200,
+        amount: 120,
         unit: 'gal compost/month'
       },
       strokeWidth: 3,
@@ -434,47 +407,15 @@ export const initialEdges = [
   },
 
   {
-    id: 'products-delivery-purchasers',
-    source: 'delivery',
-    target: 'purchasers',
-    type: 'animatedEdge',
-    sourcePosition: 'top',
-    targetPosition: 'bottom',
-    data: {
-      icons: ['🚚', '💰', '💧', '🌱'],  // Delivery work → payment → tea + compost
-      description: 'Monthly delivery to customers (paid orders)',
-      tasks: [
-        { name: 'Load truck', minPerMonth: 60 },
-        { name: 'Customer stops (purchasers)', minPerMonth: 180 }
-      ],
-      frequency: {
-        value: 1,
-        unit: 'monthly',
-        hoursPerPeriod: 4
-      },
-      volume: {
-        amount: 150,
-        unit: 'gal total/month'
-      },
-      strokeWidth: 3,
-      animationDuration: 2.5
-    },
-    style: {
-      strokeWidth: 3,
-      stroke: '#84cc16'
-    }
-  },
-
-  {
-    id: 'giveback-delivery-households',
-    source: 'delivery',
+    id: 'stage4-households',
+    source: 'stage4',
     target: 'households',
     type: 'animatedEdge',
     sourcePosition: 'top',
     targetPosition: 'bottom',
     data: {
-      icons: ['🚚', '💧', '🌱'],  // Delivery work → tea + compost returns
-      description: 'Monthly delivery to households (compost returns program)',
+      icons: ['🚚', '🌱'],  // Delivery work → compost returns
+      description: 'Monthly compost returns to participating households',
       tasks: [
         { name: 'Customer stops (households)', minPerMonth: 120 }
       ],
@@ -484,8 +425,8 @@ export const initialEdges = [
         hoursPerPeriod: 2
       },
       volume: {
-        amount: 70,
-        unit: 'gal total/month'
+        amount: 80,
+        unit: 'gal compost/month'
       },
       strokeWidth: 3,
       animationDuration: 2.5
@@ -493,6 +434,39 @@ export const initialEdges = [
     style: {
       strokeWidth: 3,
       stroke: '#22c55e'
+    }
+  },
+
+  {
+    id: 'tea-purchasers',
+    source: 'tea',
+    target: 'purchasers',
+    type: 'animatedEdge',
+    sourcePosition: 'top',
+    targetPosition: 'bottom',
+    data: {
+      icons: ['🫖', '💧', '🚚'],  // Brewing → tea → delivery
+      description: 'Brewed worm tea delivered to customers',
+      tasks: [
+        { name: 'Set up brew', minPerMonth: 20 },
+        { name: 'Load brew vat', minPerMonth: 15 },
+        { name: 'Apply at customer sites', minPerMonth: 50 }
+      ],
+      frequency: {
+        value: 1,
+        unit: 'monthly',
+        hoursPerPeriod: 1.42
+      },
+      volume: {
+        amount: 20,
+        unit: 'gal tea/month'
+      },
+      strokeWidth: 3,
+      animationDuration: 2.5
+    },
+    style: {
+      strokeWidth: 3,
+      stroke: '#06b6d4'
     }
   }
 ];

@@ -18,15 +18,53 @@ function CompostNode({ data }) {
         backgroundColor: 'rgba(15, 23, 42, 0.9)'
       }}
     >
-      {/* Connection handles */}
+      {/* Connection handles - all four sides */}
       <Handle
         type="target"
         position={Position.Top}
+        id="top"
+        style={{ background: categoryColors[data.category] }}
+      />
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="right"
+        style={{ background: categoryColors[data.category] }}
+      />
+      <Handle
+        type="target"
+        position={Position.Bottom}
+        id="bottom"
+        style={{ background: categoryColors[data.category] }}
+      />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left"
+        style={{ background: categoryColors[data.category] }}
+      />
+      <Handle
+        type="source"
+        position={Position.Top}
+        id="top-source"
+        style={{ background: categoryColors[data.category] }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-source"
         style={{ background: categoryColors[data.category] }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
+        id="bottom-source"
+        style={{ background: categoryColors[data.category] }}
+      />
+      <Handle
+        type="source"
+        position={Position.Left}
+        id="left-source"
         style={{ background: categoryColors[data.category] }}
       />
 

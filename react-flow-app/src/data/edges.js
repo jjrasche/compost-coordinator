@@ -12,6 +12,8 @@ export const initialEdges = [
     source: 'households',
     target: 'collection',
     type: 'animatedEdge',
+    sourcePosition: 'left',
+    targetPosition: 'right',
     data: {
       icons: ['🚛', '🪣', '🍎'],  // Truck (pickup work), dirty buckets, food waste
       bidirectional: true,
@@ -45,6 +47,8 @@ export const initialEdges = [
     source: 'collection',
     target: 'foodWasteProcessing',
     type: 'animatedEdge',
+    sourcePosition: 'bottom',
+    targetPosition: 'top',
     data: {
       icons: ['🍎'],  // Food waste
       description: 'Food waste moved to processing area',
@@ -75,6 +79,8 @@ export const initialEdges = [
     source: 'foodWasteProcessing',
     target: 'stage1',
     type: 'animatedEdge',
+    sourcePosition: 'bottom',
+    targetPosition: 'top',
     data: {
       icons: ['🍎'],  // Food waste to stage 1
       description: 'Prepared food waste added to active composting',
@@ -107,6 +113,8 @@ export const initialEdges = [
     source: 'households',
     target: 'collection',
     type: 'animatedEdge',
+    sourcePosition: 'left',
+    targetPosition: 'right',
     data: {
       icons: ['🚛', '📦'],  // Truck (shared route), cardboard boxes
       description: 'Weekly pickup of cardboard (shared route with food waste)',
@@ -136,6 +144,8 @@ export const initialEdges = [
     source: 'collection',
     target: 'cardboard',
     type: 'animatedEdge',
+    sourcePosition: 'left',
+    targetPosition: 'right',
     data: {
       icons: ['📦'],  // Cardboard boxes
       description: 'Cardboard moved to processing area',
@@ -162,6 +172,8 @@ export const initialEdges = [
     source: 'cardboard',
     target: 'stage1',
     type: 'animatedEdge',
+    sourcePosition: 'bottom',
+    targetPosition: 'top',
     data: {
       icons: ['✂️', '📄'],  // Shredding work → shredded cardboard
       description: 'Cardboard shredding and added to composting',
@@ -196,6 +208,8 @@ export const initialEdges = [
     source: 'stage1',
     target: 'stage2',
     type: 'animatedEdge',
+    sourcePosition: 'right',
+    targetPosition: 'left',
     data: {
       icons: ['👷', '🦠', '🌡️'],  // Human labor, microbes, heat
       description: 'Monthly pile turning + hot composting decomposition',
@@ -226,6 +240,8 @@ export const initialEdges = [
     source: 'stage2',
     target: 'stage3',
     type: 'animatedEdge',
+    sourcePosition: 'right',
+    targetPosition: 'left',
     data: {
       icons: ['👷', '🦠'],  // Human labor, mesophilic bacteria
       description: 'Monthly pile turning + cooling phase decomposition',
@@ -256,6 +272,8 @@ export const initialEdges = [
     source: 'stage3',
     target: 'stage4',
     type: 'animatedEdge',
+    sourcePosition: 'right',
+    targetPosition: 'left',
     data: {
       icons: ['👷', '🪱'],  // Human labor, worms processing
       description: 'Monthly pile turning + worm processing into castings',
@@ -289,6 +307,8 @@ export const initialEdges = [
     source: 'stage4',
     target: 'stage3',
     type: 'animatedEdge',
+    sourcePosition: 'bottom',
+    targetPosition: 'bottom',
     data: {
       icons: ['🪱'],  // Worms migrate autonomously
       bidirectional: true,
@@ -320,6 +340,8 @@ export const initialEdges = [
     source: 'stage4',
     target: 'tea',
     type: 'animatedEdge',
+    sourcePosition: 'right',
+    targetPosition: 'left',
     data: {
       icons: ['🌱'],  // Castings for tea brewing
       description: 'Finished vermicompost castings collected for tea brewing',
@@ -349,6 +371,8 @@ export const initialEdges = [
     source: 'tea',
     target: 'delivery',
     type: 'animatedEdge',
+    sourcePosition: 'top',
+    targetPosition: 'bottom',
     data: {
       icons: ['🫖', '💧'],  // Brewing work → worm tea
       description: 'Brewed worm tea ready for delivery',
@@ -382,6 +406,8 @@ export const initialEdges = [
     source: 'stage4',
     target: 'delivery',
     type: 'animatedEdge',
+    sourcePosition: 'top',
+    targetPosition: 'bottom',
     data: {
       icons: ['🌱'],  // Harvested vermicompost
       description: 'Finished vermicompost ready for delivery',
@@ -412,6 +438,8 @@ export const initialEdges = [
     source: 'delivery',
     target: 'purchasers',
     type: 'animatedEdge',
+    sourcePosition: 'top',
+    targetPosition: 'bottom',
     data: {
       icons: ['🚚', '💰', '💧', '🌱'],  // Delivery work → payment → tea + compost
       description: 'Monthly delivery to customers (paid orders)',
@@ -442,6 +470,8 @@ export const initialEdges = [
     source: 'delivery',
     target: 'households',
     type: 'animatedEdge',
+    sourcePosition: 'top',
+    targetPosition: 'bottom',
     data: {
       icons: ['🚚', '💧', '🌱'],  // Delivery work → tea + compost returns
       description: 'Monthly delivery to households (compost returns program)',

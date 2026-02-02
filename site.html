@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eagle Crest Compost Co-op</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green: #22c55e;
+            --green-dark: #166534;
+            --brown: #d97706;
+            --bg: #fafaf9;
+            --text: #1c1917;
+            --text-light: #57534e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Print styles */
+        @media print {
+            body { font-size: 11pt; }
+            .no-print { display: none !important; }
+            section { page-break-inside: avoid; }
+            .hero { min-height: auto; padding: 40px 20px; }
+            .cta-button { border: 2px solid var(--green-dark); }
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #fef3c7 100%);
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            color: var(--green-dark);
+            margin-bottom: 20px;
+        }
+
+        .hero .tagline {
+            font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+            color: var(--text-light);
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--green);
+            color: white;
+            padding: 16px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .cta-button:hover {
+            background: var(--green-dark);
+        }
+
+        /* Sections */
+        section {
+            padding: 60px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        section h2 {
+            font-size: 1.8rem;
+            color: var(--green-dark);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Problem/Solution */
+        .problem-solution {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 600px) {
+            .problem-solution { grid-template-columns: 1fr; }
+        }
+
+        .problem, .solution {
+            padding: 30px;
+            border-radius: 12px;
+        }
+
+        .problem {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .solution {
+            background: #f0fdf4;
+            border-left: 4px solid var(--green);
+        }
+
+        .problem h3, .solution h3 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .problem ul, .solution ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .problem li, .solution li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .problem li::before {
+            content: "✕";
+            position: absolute;
+            left: 0;
+            color: #ef4444;
+        }
+
+        .solution li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        /* How it works */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 600px) {
+            .steps { grid-template-columns: 1fr; }
+        }
+
+        .step {
+            text-align: center;
+            padding: 30px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--green);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+
+        .step h3 {
+            margin-bottom: 10px;
+            color: var(--green-dark);
+        }
+
+        /* Pricing */
+        .pricing-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--green-dark);
+        }
+
+        .price span {
+            font-size: 1rem;
+            color: var(--text-light);
+            font-weight: normal;
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .pricing-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            padding-left: 28px;
+            position: relative;
+        }
+
+        .pricing-features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-weight: bold;
+        }
+
+        /* Benefits */
+        .benefits {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .benefits { grid-template-columns: 1fr; }
+        }
+
+        .benefit {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .benefit-icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .benefit h4 {
+            margin-bottom: 5px;
+            color: var(--green-dark);
+        }
+
+        .benefit p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* CTA section */
+        .cta-section {
+            background: var(--green-dark);
+            color: white;
+            text-align: center;
+            padding: 80px 20px;
+            max-width: none;
+        }
+
+        .cta-section h2 {
+            color: white;
+        }
+
+        .cta-section p {
+            max-width: 500px;
+            margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+
+        .cta-section .cta-button {
+            background: white;
+            color: var(--green-dark);
+        }
+
+        .cta-section .cta-button:hover {
+            background: #f0fdf4;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--green-dark);
+        }
+
+        /* QR code section for print */
+        .qr-section {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        @media print {
+            .qr-section { display: block; }
+        }
+
+        .qr-placeholder {
+            width: 120px;
+            height: 120px;
+            border: 2px dashed #ccc;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero -->
+    <section class="hero">
+        <h1>Eagle Crest Compost Co-op</h1>
+        <p class="tagline">Turn your food scraps into garden gold. We pick up, you grow.</p>
+        <a href="mailto:compost@eaglecrest.example?subject=I want to join" class="cta-button">Join the Co-op</a>
+    </section>
+
+    <!-- Problem / Solution -->
+    <section>
+        <div class="problem-solution">
+            <div class="problem">
+                <h3>The Problem</h3>
+                <ul>
+                    <li>Food waste rots in your trash all week</li>
+                    <li>Landfills turn it into methane (20x worse than CO2)</li>
+                    <li>You're paying to throw away garden fertilizer</li>
+                </ul>
+            </div>
+            <div class="solution">
+                <h3>Our Solution</h3>
+                <ul>
+                    <li>Weekly pickup - clean bucket every time</li>
+                    <li>Composted 500 feet away, not 50 miles</li>
+                    <li>Free compost back for your garden</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section>
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Fill Your Bucket</h3>
+                <p>Food scraps, coffee grounds, eggshells - anything that was once alive.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>We Swap It</h3>
+                <p>Set it out, we grab it and leave you a fresh clean bucket.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Get Compost</h3>
+                <p>10 gallons of premium vermicompost delivered to you each year.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits -->
+    <section>
+        <h2>Why Join?</h2>
+        <div class="benefits">
+            <div class="benefit">
+                <div class="benefit-icon">🌱</div>
+                <div>
+                    <h4>Soil Partner</h4>
+                    <p>We learn what your yard needs and help you grow it better.</p>
+                </div>
+            </div>
+            <div class="benefit">
+                <div class="benefit-icon">🏠</div>
+                <div>
+                    <h4>Hyperlocal</h4>
+                    <p>Your scraps become soil in your own neighborhood.</p>
+                </div>
+            </div>
+            <div class="benefit">
+                <div class="benefit-icon">👋</div>
+                <div>
+                    <h4>Neighbor Kids</h4>
+                    <p>Not a corporation - local teens building real skills.</p>
+                </div>
+            </div>
+            <div class="benefit">
+                <div class="benefit-icon">🌍</div>
+                <div>
+                    <h4>Carbon Negative</h4>
+                    <p>Every gallon diverted = 300 fewer miles of car emissions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section>
+        <h2>Simple Pricing</h2>
+        <div class="pricing-card">
+            <div class="price">$25 <span>/month</span></div>
+            <p style="color: var(--text-light); margin-top: 10px;">or $250/year (save $50)</p>
+            <ul class="pricing-features">
+                <li>Weekly food scrap pickup</li>
+                <li>Cardboard collection included</li>
+                <li>Clean bucket swap every week</li>
+                <li>10 gallons compost per year</li>
+                <li>Soil advice when you want it</li>
+            </ul>
+            <a href="mailto:compost@eaglecrest.example?subject=Sign me up" class="cta-button">Get Started</a>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <h2>What do you like seeing in your yard?</h2>
+        <p>Herbs, tomatoes, sunflowers, fruit trees - whatever it is, we can help you grow it better.</p>
+        <a href="mailto:compost@eaglecrest.example?subject=I want to join" class="cta-button">Join the Co-op</a>
+    </section>
+
+    <!-- QR for print version -->
+    <div class="qr-section">
+        <div class="qr-placeholder">[QR Code]</div>
+        <p>Scan to visit our website</p>
+        <p><strong>jjrasche.github.io/compost-coordinator/site.html</strong></p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>Eagle Crest Compost Co-op &bull; Your neighborhood, your soil</p>
+        <p class="no-print" style="margin-top: 10px;">
+            <a href="index.html">Process Flow</a> &bull;
+            <a href="resource-planner.html">Resource Planner</a>
+        </p>
+    </footer>
+
+</body>
+</html>

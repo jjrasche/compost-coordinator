@@ -667,3 +667,11 @@ Fix...
 2026-02-02T02:07:50.426Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
 2026-02-02T02:07:50.429Z - Tool: Bash
 2026-02-02T02:07:50.435Z - Decision: allow - Safe read-only command
+2026-02-02T02:09:28.602Z - === Global Hook Invoked ===
+2026-02-02T02:09:28.610Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T02:09:28.612Z - Tool: Edit
+2026-02-02T02:09:28.617Z - Decision: allow - Write to non-sensitive file
+2026-02-02T02:09:34.021Z - === Global Hook Invoked ===
+2026-02-02T02:09:34.029Z - Project: C:\Users\rasche_j\Documents\workspace\compost-coordinator
+2026-02-02T02:09:34.032Z - Tool: Bash
+2026-02-02T02:09:34.035Z - Decision: allow - Safe read-only command

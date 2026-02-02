@@ -161,9 +161,9 @@ function updateDrag(clientX, clientY) {
     let x = (clientX - rect.left) / rect.width;
     let y = (clientY - rect.top) / rect.height;
 
-    // Snap to 0.1 granularity
-    x = Math.round(x * 10) / 10;
-    y = Math.round(y * 10) / 10;
+    // Snap to 0.01 granularity
+    x = Math.round(x * 100) / 100;
+    y = Math.round(y * 100) / 100;
 
     // Clamp to keep nodes within bounds
     x = Math.max(0.05, Math.min(0.95, x));

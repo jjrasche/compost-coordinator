@@ -1,9 +1,6 @@
 import { useCallback, useState, useEffect } from 'react';
 import {
   ReactFlow,
-  MiniMap,
-  Controls,
-  Background,
   useNodesState,
   useEdgesState,
 } from '@xyflow/react';
@@ -115,24 +112,16 @@ function App() {
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        nodesDraggable={false}
+        panOnDrag={false}
+        zoomOnScroll={false}
+        zoomOnPinch={false}
+        zoomOnDoubleClick={false}
+        preventScrolling={false}
         fitView
         minZoom={0.5}
         maxZoom={1.5}
       >
-        <Controls />
-        <MiniMap
-          nodeColor={(node) => {
-            const colors = {
-              input: '#6366f1',
-              labor: '#f59e0b',
-              composting: '#22c55e',
-              processing: '#06b6d4',
-              output: '#ec4899'
-            };
-            return colors[node.data.category] || '#94a3b8';
-          }}
-        />
-        <Background variant="dots" gap={12} size={1} />
       </ReactFlow>
 
       {selectedNode && (

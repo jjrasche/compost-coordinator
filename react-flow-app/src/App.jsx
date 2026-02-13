@@ -14,6 +14,9 @@ import { initialNodes } from './data/nodes';
 import { initialEdges } from './data/edges';
 import './styles/diagram.css';
 
+// Set to true to unlock dragging and show "Export Positions" button
+const EDIT_MODE = true;
+
 const nodeTypes = {
   compostNode: CompostNode,
 };
@@ -25,7 +28,7 @@ const edgeTypes = {
 function App() {
   // Load saved positions from localStorage
   const loadNodesWithPositions = () => {
-    const saved = localStorage.getItem('compost-positions');
+    const saved = localStorage.getItem('compost-positions-v2');
     if (!saved) return initialNodes;
 
     const positions = JSON.parse(saved);
@@ -75,7 +78,7 @@ function App() {
             acc[node.id] = node.position;
             return acc;
           }, {});
-          localStorage.setItem('compost-positions', JSON.stringify(positions));
+          localStorage.setItem('compost-positions-v2', JSON.stringify(positions));
           return currentNodes;
         });
       }, 0);
@@ -112,17 +115,51 @@ function App() {
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        nodesDraggable={false}
-        panOnDrag={false}
-        zoomOnScroll={false}
-        zoomOnPinch={false}
-        zoomOnDoubleClick={false}
-        preventScrolling={false}
+        nodesDraggable={EDIT_MODE}
+        panOnDrag={EDIT_MODE}
+        zoomOnScroll={EDIT_MODE}
+        zoomOnPinch={EDIT_MODE}
+        zoomOnDoubleClick={EDIT_MODE}
+        preventScrolling={!EDIT_MODE}
         fitView
         minZoom={0.5}
         maxZoom={1.5}
       >
       </ReactFlow>
+
+      {EDIT_MODE && (
+        <button
+          onClick={() => {
+            const positions = nodes.reduce((acc, node) => {
+              acc[node.id] = { x: Math.round(node.position.x), y: Math.round(node.position.y) };
+              return acc;
+            }, {});
+            const output = Object.entries(positions)
+              .map(([id, pos]) => `  '${id}': { x: ${pos.x}, y: ${pos.y} }`)
+              .join(',\n');
+            const code = `// Paste into nodes.js — update each node's position:\n{\n${output}\n}`;
+            console.log(code);
+            navigator.clipboard.writeText(code);
+            alert('Positions copied to clipboard and logged to console!');
+          }}
+          style={{
+            position: 'fixed',
+            bottom: 20,
+            right: 20,
+            zIndex: 1000,
+            padding: '12px 20px',
+            background: '#f59e0b',
+            color: '#000',
+            border: 'none',
+            borderRadius: 8,
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            fontSize: 14,
+          }}
+        >
+          Export Positions
+        </button>
+      )}
 
       {selectedNode && (
         <NodeDetailPanel

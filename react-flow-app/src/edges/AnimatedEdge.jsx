@@ -1,5 +1,15 @@
 import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@xyflow/react';
-import { memo } from 'react';
+import { memo, useRef, useState, useEffect } from 'react';
+
+// Pixels per second — consistent velocity regardless of edge length
+const WEEKLY_SPEED = 30;
+const MONTHLY_SPEED = 10;
+
+function getSpeed(frequency) {
+  if (!frequency) return MONTHLY_SPEED;
+  if (frequency.unit === 'weekly') return WEEKLY_SPEED;
+  return MONTHLY_SPEED;
+}
 
 function AnimatedEdge({
   id,
@@ -21,29 +31,43 @@ function AnimatedEdge({
     targetPosition,
   });
 
+  const pathRef = useRef(null);
+  const [duration, setDuration] = useState(null);
+
   const {
     icons = [],
     bidirectional = false,
     reverseIcons = [],
-    animationDuration = 2
+    frequency,
   } = data || {};
+
+  const speed = getSpeed(frequency);
+
+  useEffect(() => {
+    if (pathRef.current) {
+      const length = pathRef.current.getTotalLength();
+      setDuration(length / speed);
+    }
+  }, [edgePath, speed]);
+
+  // Don't render animations until we know the duration
+  const animDuration = duration || 2;
 
   return (
     <>
-      {/* Main edge path with animated dashed line */}
       <BaseEdge
         id={id}
         path={edgePath}
         style={{
           ...style,
           strokeDasharray: '8 4',
-          animation: `flow ${animationDuration}s linear infinite`
+          animation: `flow ${animDuration}s linear infinite`
         }}
       />
 
       {/* Forward direction icons */}
-      {icons.map((icon, index) => {
-        const offset = (index / icons.length) * animationDuration;
+      {duration && icons.map((icon, index) => {
+        const offset = (index / icons.length) * animDuration;
         return (
           <g key={`forward-${index}`}>
             <text
@@ -53,7 +77,7 @@ function AnimatedEdge({
               style={{ pointerEvents: 'none', userSelect: 'none' }}
             >
               <animateMotion
-                dur={`${animationDuration}s`}
+                dur={`${animDuration}s`}
                 repeatCount="indefinite"
                 begin={`${offset}s`}
               >
@@ -66,8 +90,8 @@ function AnimatedEdge({
       })}
 
       {/* Reverse direction icons (if bidirectional) */}
-      {bidirectional && reverseIcons.map((icon, index) => {
-        const offset = (index / reverseIcons.length) * animationDuration;
+      {duration && bidirectional && reverseIcons.map((icon, index) => {
+        const offset = (index / reverseIcons.length) * animDuration;
         return (
           <g key={`reverse-${index}`}>
             <text
@@ -77,10 +101,10 @@ function AnimatedEdge({
               style={{ pointerEvents: 'none', userSelect: 'none' }}
             >
               <animateMotion
-                dur={`${animationDuration}s`}
+                dur={`${animDuration}s`}
                 repeatCount="indefinite"
                 begin={`${offset}s`}
-                keyPoints="1;0"  // Reverse direction
+                keyPoints="1;0"
                 keyTimes="0;1"
               >
                 <mpath href={`#${id}`} />
@@ -91,7 +115,6 @@ function AnimatedEdge({
         );
       })}
 
-      {/* Clickable edge label for interactions */}
       <EdgeLabelRenderer>
         <div
           style={{
@@ -101,7 +124,6 @@ function AnimatedEdge({
           }}
           className="edge-label-clickable"
         >
-          {/* Invisible clickable area */}
           <button
             onClick={() => data.onEdgeClick?.(data)}
             style={{
@@ -117,8 +139,8 @@ function AnimatedEdge({
         </div>
       </EdgeLabelRenderer>
 
-      {/* Hidden path for animateMotion reference */}
-      <path id={id} d={edgePath} style={{ display: 'none' }} />
+      {/* Path used for animateMotion reference and length measurement */}
+      <path ref={pathRef} id={id} d={edgePath} style={{ display: 'none' }} />
     </>
   );
 }

@@ -1,13 +1,13 @@
 /**
  * Node data migrated from vanilla config.js to React Flow format
- * Position conversion: percentage * 1000 = pixels (for 1000x1000 viewport)
+ * Positions updated to match GitHub Pages layout (from localStorage)
  */
 
 export const initialNodes = [
   {
     id: 'households',
     type: 'compostNode',
-    position: { x: 580, y: 160 },
+    position: { x: 621, y: 308 },
     data: {
       label: 'Households',
       category: 'input',
@@ -20,7 +20,7 @@ export const initialNodes = [
   {
     id: 'collection',
     type: 'compostNode',
-    position: { x: 340, y: 160 },
+    position: { x: 11, y: 310 },
     data: {
       label: 'Collection',
       category: 'labor',
@@ -39,7 +39,7 @@ export const initialNodes = [
   {
     id: 'brownsStore',
     type: 'compostNode',
-    position: { x: 100, y: 420 },
+    position: { x: -85, y: 486 },
     data: {
       label: 'Browns Store',
       category: 'labor',
@@ -52,7 +52,7 @@ export const initialNodes = [
   {
     id: 'greensStore',
     type: 'compostNode',
-    position: { x: 280, y: 420 },
+    position: { x: 96, y: 488 },
     data: {
       label: 'Greens Store',
       category: 'labor',
@@ -65,7 +65,7 @@ export const initialNodes = [
   {
     id: 'stage1',
     type: 'compostNode',
-    position: { x: 100, y: 700 },
+    position: { x: -31, y: 696 },
     data: {
       label: 'Stage 1: Active',
       category: 'composting',
@@ -81,7 +81,7 @@ export const initialNodes = [
   {
     id: 'stage2',
     type: 'compostNode',
-    position: { x: 260, y: 700 },
+    position: { x: 188, y: 727 },
     data: {
       label: 'Stage 2: Cooling',
       category: 'composting',
@@ -97,7 +97,7 @@ export const initialNodes = [
   {
     id: 'stage3',
     type: 'compostNode',
-    position: { x: 420, y: 700 },
+    position: { x: 417, y: 763 },
     data: {
       label: 'Stage 3: Worms',
       category: 'composting',
@@ -113,7 +113,7 @@ export const initialNodes = [
   {
     id: 'stage4',
     type: 'compostNode',
-    position: { x: 580, y: 700 },
+    position: { x: 627, y: 790 },
     data: {
       label: 'Stage 4: Harvest',
       category: 'composting',
@@ -130,25 +130,42 @@ export const initialNodes = [
   {
     id: 'tea',
     type: 'compostNode',
-    position: { x: 800, y: 700 },
+    position: { x: 833, y: 790 },
     data: {
       label: 'Brew Worm Tea',
       category: 'processing',
       icon: '💧',
-      description: 'Brew aerated worm tea from finished castings',
+      description: 'Aeration vessel where worm castings are steeped to produce liquid fertilizer',
       metrics: ['20 gal/mo', '2 brew cycles'],
       tasks: [
         { name: 'Collect castings', minPerMonth: 15 },
         { name: 'Set up brew', minPerMonth: 20 },
-        { name: 'Load brew vat', minPerMonth: 15 },
-        { name: 'Apply at customer sites', minPerMonth: 50 }
+        { name: 'Load brew vat', minPerMonth: 15 }
+      ]
+    }
+  },
+  {
+    id: 'distribution',
+    type: 'compostNode',
+    position: { x: 712, y: 557 },
+    data: {
+      label: 'Distribution',
+      category: 'output',
+      icon: '🚚',
+      description: 'Vehicle/trailer loaded with finished compost and worm tea for delivery to customers and households',
+      metrics: ['200 gal/month output'],
+      tasks: [
+        { name: 'Load truck with compost', minPerMonth: 60 },
+        { name: 'Load worm tea containers', minPerMonth: 15 },
+        { name: 'Customer stops (purchasers)', minPerMonth: 180 },
+        { name: 'Customer stops (households)', minPerMonth: 120 }
       ]
     }
   },
   {
     id: 'purchasers',
     type: 'compostNode',
-    position: { x: 800, y: 160 },
+    position: { x: 824, y: 309 },
     data: {
       label: 'Purchasers',
       category: 'output',

@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+
+  <!-- ============ HANDLE (behind everything) ============ -->
+  <path d="M32 50 Q32 18 64 10 Q96 18 96 50" stroke="#888" stroke-width="5" fill="none" stroke-linecap="round" />
+  <path d="M36 48 Q36 22 64 15 Q92 22 92 48" stroke="#AAA" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4" />
+
+  <!-- ============ BUCKET ============ -->
+  <!-- Bucket body -->
+  <path d="M30 54 L36 110 Q38 120 64 120 Q90 120 92 110 L98 54 Z" fill="#A07820" />
+  <!-- Left highlight -->
+  <path d="M30 54 L36 110 Q38 120 48 120 L44 54 Z" fill="#B08828" opacity="0.35" />
+  <!-- Right shadow -->
+  <path d="M84 54 L92 110 Q90 120 80 120 L84 54 Z" fill="#7A5A10" opacity="0.25" />
+
+  <!-- Bucket rim -->
+  <path d="M26 48 L102 48 L100 58 L28 58 Z" fill="#B89030" />
+  <path d="M26 48 L102 48 L101 52 L27 52 Z" fill="#CCA038" />
+
+  <!-- Metal bands -->
+  <path d="M33 78 L95 78 L94.5 80.5 L33.5 80.5 Z" fill="#8A6818" opacity="0.35" />
+  <path d="M34.5 96 L93.5 96 L93 98.5 L35 98.5 Z" fill="#8A6818" opacity="0.35" />
+
+  <!-- Rivets -->
+  <circle cx="32" cy="51" r="3.5" fill="#999" />
+  <circle cx="96" cy="51" r="3.5" fill="#999" />
+  <circle cx="32" cy="51" r="1.5" fill="#777" />
+  <circle cx="96" cy="51" r="1.5" fill="#777" />
+
+  <!-- ============ COMPOST FILL LINE ============ -->
+  <path d="M30 54 Q48 48 64 50 Q80 48 98 54 L98 52 Q80 46 64 48 Q48 46 30 52 Z" fill="#5A6B30" />
+
+  <!-- ============ BANANA PEEL (left side) ============ -->
+  <!-- Main banana curve - proper crescent -->
+  <path d="M26 50 Q20 40 24 30 Q26 24 30 24 Q34 24 32 30 Q28 40 30 50" fill="#F5D547" />
+  <!-- Inner banana (slightly darker for depth) -->
+  <path d="M27 48 Q22 40 25 32 Q27 28 30 28 Q32 28 30 34 Q28 42 29 48" fill="#F0CC30" opacity="0.5" />
+  <!-- Peel curling outward left -->
+  <path d="M24 30 Q16 28 14 34 Q14 38 20 38 Q22 36 24 30" fill="#E8C420" />
+  <!-- Peel curling outward right -->
+  <path d="M30 24 Q36 18 40 22 Q40 28 36 28 Q34 26 30 24" fill="#E8C420" />
+  <!-- Brown tip -->
+  <circle cx="25" cy="29" r="2.2" fill="#7A5508" />
+
+  <!-- ============ CARROT (center-left) ============ -->
+  <!-- Fat carrot body -->
+  <path d="M48 52 L44 28 Q46 20 54 20 Q58 20 60 28 L56 52 Z" fill="#ED8722" />
+  <!-- Carrot highlight -->
+  <path d="M48 52 L44 28 Q46 20 50 20 L50 52 Z" fill="#F5A040" opacity="0.35" />
+  <!-- Carrot lines -->
+  <line x1="46" y1="32" x2="58" y2="32" stroke="#D07018" stroke-width="1" opacity="0.5" />
+  <line x1="46.5" y1="37" x2="57.5" y2="37" stroke="#D07018" stroke-width="1" opacity="0.5" />
+  <line x1="47" y1="42" x2="57" y2="42" stroke="#D07018" stroke-width="1" opacity="0.5" />
+  <!-- Carrot greens -->
+  <path d="M52 20 Q46 10 44 4" stroke="#3D8B37" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <path d="M52 20 Q52 8 52 2" stroke="#4DA347" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <path d="M52 20 Q58 10 60 4" stroke="#3D8B37" stroke-width="2.2" fill="none" stroke-linecap="round" />
+
+  <!-- ============ APPLE (right side - WIDE and ROUND) ============ -->
+  <!-- Apple body - wide ellipse, squat -->
+  <ellipse cx="80" cy="38" rx="16" ry="14" fill="#E03030" />
+  <!-- Apple left lobe shadow -->
+  <path d="M66 42 Q64 34 70 26 Q74 22 78 26 Q72 32 72 42 Z" fill="#C02020" opacity="0.4" />
+  <!-- Apple right highlight -->
+  <path d="M86 28 Q90 32 90 40 Q88 42 86 38 Q84 32 86 28 Z" fill="#F04848" opacity="0.5" />
+  <!-- Apple bottom indent -->
+  <path d="M74 50 Q80 46 86 50 Q80 52 74 50 Z" fill="#B02020" opacity="0.3" />
+  <!-- Apple top indent -->
+  <path d="M74 26 Q80 24 86 26 Q80 28 74 26 Z" fill="#A02020" />
+  <!-- Stem -->
+  <path d="M80 26 Q81 18 79 14" stroke="#5D3A1A" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <!-- Leaf -->
+  <path d="M80 18 Q86 14 90 18 Q86 21 80 18 Z" fill="#3D8B37" />
+  <!-- Leaf vein -->
+  <path d="M81 18 L88 16.5" stroke="#2D6B27" stroke-width="0.7" fill="none" />
+
+  <!-- ============ EGGSHELL (right of center) ============ -->
+  <path d="M92 54 Q88 44 92 38 Q96 34 100 38 Q104 44 100 54 Z" fill="#F5F0E0" />
+  <path d="M93 52 Q90 45 93 40 Q96 36 99 40 Q102 45 99 52 Z" fill="#EDE5D0" />
+  <path d="M90 48 L93 44 L91 40 L94 38" stroke="#C8C0A0" stroke-width="1" fill="none" />
+
+  <!-- ============ COFFEE GROUNDS ============ -->
+  <circle cx="38" cy="52" r="1.5" fill="#2D1F15" />
+  <circle cx="42" cy="50" r="1.2" fill="#3D2B1F" />
+  <circle cx="64" cy="52" r="1.3" fill="#2D1F15" />
+  <circle cx="68" cy="54" r="1" fill="#3D2B1F" />
+  <circle cx="72" cy="52" r="1.1" fill="#2D1F15" />
+</svg>

@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+
+  <!-- ============ HANDLE (behind everything) ============ -->
+  <path d="M28 52 Q28 16 64 6 Q100 16 100 52" stroke="#888" stroke-width="5" fill="none" stroke-linecap="round" />
+  <path d="M32 50 Q32 20 64 11 Q96 20 96 50" stroke="#AAA" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.35" />
+
+  <!-- ============ BUCKET BODY ============ -->
+  <path d="M26 56 L32 112 Q34 124 64 124 Q94 124 96 112 L102 56 Z" fill="#A07820" />
+  <path d="M26 56 L32 112 Q34 124 46 124 L40 56 Z" fill="#B89030" opacity="0.3" />
+  <path d="M86 56 L96 112 Q94 124 82 124 L86 56 Z" fill="#7A5A10" opacity="0.25" />
+  <path d="M30 80 Q64 86 98 80" stroke="#8A6818" stroke-width="2.5" fill="none" opacity="0.3" />
+  <path d="M31 98 Q64 104 97 98" stroke="#8A6818" stroke-width="2.5" fill="none" opacity="0.3" />
+
+  <!-- Bucket rim -->
+  <ellipse cx="64" cy="54" rx="40" ry="12" fill="#B89030" />
+  <ellipse cx="64" cy="52" rx="39" ry="10" fill="#CCA038" />
+  <ellipse cx="64" cy="54" rx="36" ry="9" fill="#806015" />
+  <ellipse cx="64" cy="55" rx="34" ry="8" fill="#3D2D10" />
+  <ellipse cx="64" cy="55" rx="32" ry="7" fill="#4A5A28" opacity="0.7" />
+
+  <!-- Rivets -->
+  <circle cx="28" cy="54" r="3" fill="#999" />
+  <circle cx="100" cy="54" r="3" fill="#999" />
+  <circle cx="28" cy="54" r="1.3" fill="#777" />
+  <circle cx="100" cy="54" r="1.3" fill="#777" />
+
+  <!-- ============ BANANA PEEL (simplified - thick curved arc) ============ -->
+  <!-- Banana = thick arc curving upward, like a smile rotated -->
+  <!-- Main banana body - simple thick crescent -->
+  <path d="M18 48 Q14 34 20 22 Q26 14 32 18 Q28 26 24 36 Q22 44 24 52"
+        fill="#F5D547" stroke="#E8C420" stroke-width="1" />
+  <!-- Lighter belly -->
+  <path d="M20 46 Q18 36 22 26 Q26 18 30 20 Q28 28 26 36 Q24 44 26 50"
+        fill="#FADE60" opacity="0.4" />
+  <!-- One peel flap curling away from banana body -->
+  <path d="M20 22 Q14 16 10 20 Q10 26 16 28 Q18 26 20 22" fill="#E0BC18" />
+  <!-- Brown stem tip at top -->
+  <path d="M20 22 L18 18 L22 18 Z" fill="#7A5508" />
+  <!-- Brown end at bottom -->
+  <path d="M22 50 Q24 54 26 52 Q24 56 20 52 Z" fill="#7A5508" />
+
+  <!-- ============ CARROT ============ -->
+  <path d="M50 54 L46 30 Q48 22 54 22 Q60 22 60 30 L56 54 Z" fill="#ED8722" />
+  <path d="M50 54 L46 30 Q48 22 51 22 L51 54 Z" fill="#F5A040" opacity="0.3" />
+  <path d="M55 54 L60 30 Q60 22 58 22 L58 54 Z" fill="#D07018" opacity="0.2" />
+  <line x1="47.5" y1="32" x2="58.5" y2="32" stroke="#C06818" stroke-width="0.8" opacity="0.4" />
+  <line x1="48" y1="37" x2="58" y2="37" stroke="#C06818" stroke-width="0.8" opacity="0.4" />
+  <line x1="48.5" y1="42" x2="57.5" y2="42" stroke="#C06818" stroke-width="0.8" opacity="0.4" />
+  <line x1="49" y1="47" x2="57" y2="47" stroke="#C06818" stroke-width="0.8" opacity="0.4" />
+  <path d="M53 22 Q46 10 44 4" stroke="#3D8B37" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <path d="M53 22 Q53 8 53 2" stroke="#4DA347" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <path d="M53 22 Q60 10 62 4" stroke="#3D8B37" stroke-width="2.2" fill="none" stroke-linecap="round" />
+
+  <!-- ============ APPLE ============ -->
+  <ellipse cx="82" cy="38" rx="17" ry="15" fill="#E03030" />
+  <path d="M72 28 Q78 24 82 26 Q86 24 92 28 Q86 30 82 28 Q78 30 72 28 Z" fill="#C02020" />
+  <path d="M66 42 Q64 34 68 28 Q72 26 76 28 Q70 32 70 42 Z" fill="#B82020" opacity="0.4" />
+  <path d="M88 30 Q94 34 94 42 Q92 42 90 38 Q88 34 88 30 Z" fill="#F04848" opacity="0.45" />
+  <path d="M82 26 Q83 16 81 12" stroke="#5D3A1A" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <path d="M82 16 Q90 12 94 16 Q90 20 82 16 Z" fill="#3D8B37" />
+
+  <!-- ============ EGGSHELL ============ -->
+  <path d="M96 54 Q92 44 96 40 Q100 36 104 40 Q108 46 104 54 Z" fill="#F5F0E0" />
+  <path d="M97 52 Q94 45 97 42 Q100 38 103 42 Q106 46 103 52 Z" fill="#EDE5D0" />
+  <path d="M94 48 L97 44 L95 42 L98 40" stroke="#C8C0A0" stroke-width="0.8" fill="none" />
+
+  <!-- ============ COFFEE GROUNDS ============ -->
+  <circle cx="38" cy="54" r="1.3" fill="#2D1F15" />
+  <circle cx="42" cy="52" r="1.1" fill="#3D2B1F" />
+  <circle cx="64" cy="55" r="1.2" fill="#2D1F15" />
+  <circle cx="68" cy="53" r="1" fill="#3D2B1F" />
+  <circle cx="72" cy="55" r="1.1" fill="#2D1F15" />
+</svg>

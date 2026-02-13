@@ -15,7 +15,7 @@ import { initialEdges } from './data/edges';
 import './styles/diagram.css';
 
 // Set to true to unlock dragging and show "Export Positions" button
-const EDIT_MODE = true;
+const EDIT_MODE = false;
 
 const nodeTypes = {
   compostNode: CompostNode,

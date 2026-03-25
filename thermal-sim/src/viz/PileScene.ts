@@ -12,7 +12,7 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { CompostGrid, MATERIAL_FROM_CODE } from '../core/types/CompostGrid';
+import { CompostGrid, MATERIAL_FROM_CODE, computeBrickLayout } from '../core/types/CompostGrid';
 import type { SimulationConfig } from '../core/types/SimulationConfig';
 import { tempToColor, o2ToColor, moistureToColor } from './tempColorScale';
 import { AirflowParticles } from './AirflowParticles';
@@ -293,12 +293,11 @@ export class PileScene {
     tarp.position.set(maxX / 2, 0.005, maxZ / 2);
     this.baseGroup.add(tarp);
 
-    // Bricks — full footprint (no log inset)
+    // Bricks — optimized placement (avoids pipe lane + hole exit zones)
     const brickGeo = new THREE.BoxGeometry(scale * 0.8, plenumH, scale * 0.8);
     const brickMat = new THREE.MeshStandardMaterial({ color: 0x9B7024, roughness: 0.9 });
-    const spacingCells = Math.round(12 / grid.resolution);
-    for (let z = 1; z < nz - 1; z += spacingCells) {
-      for (let x = 1; x < nx - 1; x += spacingCells) {
+    if (this.storedConfig) {
+      for (const { x, z } of computeBrickLayout(this.storedConfig)) {
         const brick = new THREE.Mesh(brickGeo, brickMat);
         brick.position.set((x + 0.5) * scale, plenumH * 0.5, (z + 0.5) * scale);
         this.baseGroup.add(brick);
@@ -338,19 +337,18 @@ export class PileScene {
     pipe.position.set(maxX / 2, plenumH * 0.5, maxZ / 2);
     this.baseGroup.add(pipe);
 
-    // Pipe holes — small bright spheres at 4 and 8 o'clock positions along the pipe
+    // Pipe holes — small bright spheres on upper arc (9→12→3 o'clock)
+    // Upper arc directs air upward through hardware cloth into compost
     const aeration = this.storedConfig?.aeration;
     const holeSpacingFt = (aeration?.holeSpacing ?? 4) / 12;
     const holeDiameterFt = (aeration?.holeDiameter ?? 3/8) / 12;
     const holeGeo = new THREE.SphereGeometry(holeDiameterFt * 1.5, 6, 6); // slightly oversized for visibility
     const holeMat = new THREE.MeshBasicMaterial({ color: 0x88ccff });
-    // 4 o'clock = 120° from top, 8 o'clock = 240° from top (pointing down-left and down-right)
-    // Holes in the bottom 180° arc (3 o'clock → 6 o'clock → 9 o'clock)
     const holesPerRing = this.storedConfig?.aeration.holesPerRing ?? 3;
-    const arcStart = Math.PI / 2;
-    const arcSpan = Math.PI;
+    const arcStart = -Math.PI / 2;  // 9 o'clock
+    const arcSpan = Math.PI;        // sweep to 3 o'clock
     const holeAngles = holesPerRing === 1
-      ? [Math.PI]
+      ? [0]  // single hole points straight up (12 o'clock)
       : Array.from({ length: holesPerRing }, (_, k) => arcStart + k * arcSpan / (holesPerRing - 1));
     const pipeStartZ = scale * 0.5;
     const pipeEndZ = maxZ - scale * 0.5;

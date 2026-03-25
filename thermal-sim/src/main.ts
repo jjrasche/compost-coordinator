@@ -253,6 +253,7 @@ function bindControls(): void {
         (document.getElementById('holeSpacingSlider') as HTMLInputElement).value + '"';
       const holeDiam = parseFloat((document.getElementById('holeDiameterSlider') as HTMLInputElement).value);
       document.getElementById('holeDiameterVal')!.textContent = formatFraction(holeDiam) + '"';
+      scene.updateFromGrid(grid, config, latestSnapshot?.fanOn ?? false, simTimeHours);
     });
   }
 

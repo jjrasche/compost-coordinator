@@ -50,9 +50,10 @@ export class AirflowParticles {
   private lateralSpeed = 0;        // compost lateral zig-zag speed from tortuosity
   private poreCorrelationTime = 0; // seconds before particle changes lateral direction
 
-  // Pre-computed pipe hole positions [x, y, z] in world-space
-  private holePositions: [number, number, number][] = [];
+  // Pre-computed pipe hole positions [x, y, z, exitAngle] in world-space
+  private holePositions: [number, number, number, number][] = [];
   private holeSpreadWorld = 0; // hole radius in world-space for spawn spread
+  private holeExitSpeed = 0;   // jet velocity at hole exit (world-space ft/s, visual scale)
 
   // Particle state (SoA layout for cache friendliness)
   private posX = new Float32Array(MAX_PARTICLES);
@@ -144,7 +145,7 @@ export class AirflowParticles {
 
       // Pick a random hole to spawn from
       const holeIdx = Math.floor(Math.random() * this.holePositions.length);
-      const [hx, hy, hz] = this.holePositions[holeIdx];
+      const [hx, hy, hz, exitAngle] = this.holePositions[holeIdx];
 
       // Spawn at physical hole position with hole-diameter spread
       const spread = this.holeSpreadWorld;
@@ -152,14 +153,11 @@ export class AirflowParticles {
       this.posY[slot] = hy + (Math.random() - 0.5) * spread * 2;
       this.posZ[slot] = hz + (Math.random() - 0.5) * spread * 2;
 
-      // Initial velocity matches the plenum field at spawn position:
-      // radial (X) from linear decay model, upward (Y) at superficial speed
-      const dx = hx - this.pipeCenterXWorld;
-      const distFromCenter = Math.abs(dx);
-      const radialFrac = Math.max(0, 1 - distFromCenter / this.pileHalfWidthWorld);
-      this.velX[slot] = Math.sign(dx) * this.plenumRadialMax * radialFrac;
-      this.velY[slot] = this.superficialSpeed;
-      this.velZ[slot] = (Math.random() - 0.5) * this.superficialSpeed * 0.1;
+      // Initial velocity: jet exits perpendicular to pipe surface at the hole angle.
+      // sin(angle) → X component, cos(angle) → Y component (upper arc → upward bias)
+      this.velX[slot] = Math.sin(exitAngle) * this.holeExitSpeed;
+      this.velY[slot] = Math.cos(exitAngle) * this.holeExitSpeed;
+      this.velZ[slot] = (Math.random() - 0.5) * this.holeExitSpeed * 0.05;
       this.age[slot] = 0;
       this.alive[slot] = 1;
     }
@@ -339,19 +337,22 @@ export class AirflowParticles {
     this.poreCorrelationTime = particleDiameterFt / totalPoreSpeed;
 
     // Precompute pipe hole positions from config
-    // Holes at 4 o'clock (120°) and 8 o'clock (240°) from top, spaced along pipe
+    // Upper 180° arc (9→12→3 o'clock) — air exits upward into hardware cloth + compost
     this.holePositions = [];
     const holeSpacingFt = config.aeration.holeSpacing / 12;
-    // holeDiameter used for spawn spread (stored for reference)
     this.holeSpreadWorld = (config.aeration.holeDiameter ?? 3/8) / 12 / 2;
-    // Holes in the bottom 180° arc (3 o'clock → 6 o'clock → 9 o'clock)
-    // so air exits downward into the plenum for even distribution
     const holesPerRing = config.aeration.holesPerRing;
-    const arcStart = Math.PI / 2;  // 90° = 3 o'clock
-    const arcSpan = Math.PI;       // 180° arc
+    const arcStart = -Math.PI / 2;  // 9 o'clock
+    const arcSpan = Math.PI;        // sweep to 3 o'clock
     const holeAngles = holesPerRing === 1
-      ? [Math.PI] // single hole points straight down
+      ? [0] // single hole points straight up (12 o'clock)
       : Array.from({ length: holesPerRing }, (_, k) => arcStart + k * arcSpan / (holesPerRing - 1));
+
+    // Hole exit visual speed: jet decelerates to plenum-scale velocity within a few
+    // hole-diameters. Use superficial speed × small multiplier for the initial burst —
+    // hole angle provides the direction, plenum physics handles the magnitude.
+    this.holeExitSpeed = this.superficialSpeed * 3;
+
     const pipeStartZ = this.plenumInsetWorld + this.scale;
     const pipeEndZ = this.gridMaxZWorld - this.plenumInsetWorld - this.scale;
     const pipeY = this.plenumTopWorld * 0.5;
@@ -359,7 +360,7 @@ export class AirflowParticles {
       for (const angle of holeAngles) {
         const hx = this.pipeCenterXWorld + Math.sin(angle) * this.pipeRadiusWorld;
         const hy = pipeY + Math.cos(angle) * this.pipeRadiusWorld;
-        this.holePositions.push([hx, hy, z]);
+        this.holePositions.push([hx, hy, z, angle]);
       }
     }
   }

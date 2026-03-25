@@ -147,6 +147,12 @@ export function initializeGrid(grid: CompostGrid, config: SimulationConfig): voi
   // Edge seal: 1 cell of compost curls under plenum to prevent air short-circuit
   const sealCells = 1;
 
+  // Precompute optimized brick positions (avoids pipe lane + hole exit zones)
+  const brickSet = new Set<number>();
+  for (const b of computeBrickLayout(config)) {
+    brickSet.add(b.x * grid.nz + b.z);
+  }
+
   for (let y = 0; y < grid.ny; y++) {
     for (let z = 0; z < grid.nz; z++) {
       for (let x = 0; x < grid.nx; x++) {
@@ -169,7 +175,7 @@ export function initializeGrid(grid: CompostGrid, config: SimulationConfig): voi
             if (dxPipe * dxPipe + dzPipe * dzPipe <= pipeRadiusCells * pipeRadiusCells) {
               mat = 'pipe';
             }
-            else if (isBrickPosition(x, z, res)) {
+            else if (brickSet.has(x * grid.nz + z)) {
               mat = 'brick';
             }
             else {
@@ -195,10 +201,38 @@ export function initializeGrid(grid: CompostGrid, config: SimulationConfig): voi
   }
 }
 
-/** Determine if a cell position is a brick in the support grid (every ~12" spacing) */
-function isBrickPosition(x: number, z: number, resolution: number): boolean {
-  const spacingCells = Math.round(12 / resolution); // 12 inch spacing
-  return (x % spacingCells === 0) && (z % spacingCells === 0);
+/**
+ * Compute optimal brick support positions for the plenum.
+ *
+ * Constraints:
+ * - Max 12" unsupported span (hardware cloth structural limit under compost load)
+ * - Clear lane around pipe axis in X (pipe body + jet clearance from upper-arc holes)
+ * - Edge seal inset (bricks start 1 cell inside perimeter)
+ *
+ * The pipe provides support directly beneath the hardware cloth along its length,
+ * so the clear lane doesn't create an unsupported span.
+ */
+export function computeBrickLayout(config: SimulationConfig): { x: number; z: number }[] {
+  const res = config.resolution;
+  const nx = Math.ceil(config.pile.width / res);
+  const nz = Math.ceil(config.pile.depth / res);
+  const spacingCells = Math.round(12 / res);
+
+  const pipeCX = Math.round(config.aeration.pipePosition.x / res);
+  const pipeRadCells = config.aeration.pipeDiameter / 2 / res;
+  const exclusionXCells = Math.ceil(pipeRadCells + 1.5);
+
+  const sealCells = 1;
+  const bricks: { x: number; z: number }[] = [];
+
+  for (let z = sealCells + 1; z < nz - sealCells; z += spacingCells) {
+    for (let x = sealCells + 1; x < nx - sealCells; x += spacingCells) {
+      if (Math.abs(x - pipeCX) <= exclusionXCells) continue;
+      bricks.push({ x, z });
+    }
+  }
+
+  return bricks;
 }
 
 /**

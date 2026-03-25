@@ -1,0 +1,104 @@
+/** Configuration for the compost thermal simulation */
+export interface SimulationConfig {
+  /** Grid resolution in inches per cell */
+  resolution: number;
+  /** Pile dimensions in inches */
+  pile: PileDimensions;
+  /** Aeration system configuration */
+  aeration: AerationConfig;
+  /** Boundary conditions */
+  boundaries: BoundaryConfig;
+  /** Simulation time parameters */
+  time: TimeConfig;
+}
+
+export interface PileDimensions {
+  width: number;   // inches (X axis)
+  depth: number;   // inches (Z axis, into screen)
+  height: number;  // inches (Y axis, up)
+  /** Plenum height — derived from pipe diameter + 0.5" clearance. Do not set manually. */
+  plenumHeight: number;
+  porosity: number;      // void fraction of compost (0-1, typically 0.3-0.4)
+}
+
+export interface AerationConfig {
+  /** Pipe diameter in inches */
+  pipeDiameter: number;
+  /** Pipe center position (X, Z) in inches from pile corner */
+  pipePosition: { x: number; z: number };
+  /** Fan CFM at current speed/gate setting */
+  fanCfm: number;
+  /** Duty cycle: seconds on */
+  onSeconds: number;
+  /** Duty cycle: seconds off */
+  offSeconds: number;
+  /** Blast gate opening fraction (0-1) */
+  gateOpening: number;
+  /** Spacing between pipe holes in inches (along pipe length) */
+  holeSpacing: number;
+  /** Diameter of each pipe hole in inches */
+  holeDiameter: number;
+  /** Number of holes around the pipe circumference at each position */
+  holesPerRing: number;
+}
+
+export interface BoundaryConfig {
+  /** Ambient air temperature F */
+  ambientTemp: number;
+  /** Ground temperature F (stable soil temp below pile) */
+  groundTemp: number;
+  /** Log diameter in inches (logs are external, lying on side for edge seal) */
+  logDiameter: number;
+  /** Whether straw bale insulation is present */
+  hasStraw: boolean;
+  /** Straw bale thickness in inches */
+  strawThickness: number;
+  /** Wind speed mph (affects convective loss at membrane surface) */
+  windSpeed: number;
+}
+
+export interface TimeConfig {
+  /** Heat equation timestep in hours */
+  heatTimestep: number;
+  /** Moisture update interval in hours */
+  moistureInterval: number;
+  /** Total simulation duration in hours */
+  totalHours: number;
+}
+
+export function createDefaultConfig(): SimulationConfig {
+  return {
+    resolution: 2,  // 2 inches per cell
+    pile: {
+      width: 48,
+      depth: 48,
+      height: 60,   // extra headroom for dome above logs
+      plenumHeight: 4.5,  // pipeDiameter(4) + 0.5" clearance — bricks must be taller than pipe
+      porosity: 0.45,  // void fraction for fresh food waste + browns (bulking agent)
+    },
+    aeration: {
+      pipeDiameter: 4,
+      pipePosition: { x: 24, z: 24 },  // centered
+      fanCfm: 40,     // after blast gate throttling
+      onSeconds: 90,    // optimized: 90s on
+      offSeconds: 600,  // optimized: 10m off (13% duty cycle)
+      gateOpening: 0.20, // optimized: 20% open
+      holeSpacing: 4, // inches between hole rings along pipe
+      holeDiameter: 3/8, // 3/8" drill bit
+      holesPerRing: 3, // holes evenly spaced around circumference
+    },
+    boundaries: {
+      ambientTemp: 75,
+      groundTemp: 55,
+      logDiameter: 6, // logs lie on side outside pile for edge seal
+      hasStraw: false,
+      strawThickness: 18,
+      windSpeed: 5,
+    },
+    time: {
+      heatTimestep: 0.4,    // 24 minutes (within CFL limit for 2" grid)
+      moistureInterval: 24,  // daily
+      totalHours: 24 * 30,   // 30 days default
+    },
+  };
+}

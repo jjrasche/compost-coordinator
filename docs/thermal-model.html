@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mini-CASP Thermal Model</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 24px; }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .subtitle { color: #999; font-size: 0.85rem; margin-bottom: 20px; }
+
+  .layout { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+  .main-col { min-width: 0; }
+  .side-col { display: flex; flex-direction: column; gap: 12px; }
+
+  .controls { margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .control-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .controls label { font-size: 0.82rem; color: #bbb; display: flex; align-items: center; gap: 6px; }
+  .controls input[type=range] { width: 140px; }
+  .controls .value { font-weight: bold; color: #fff; min-width: 44px; font-size: 0.85rem; }
+  .controls select { background: #2a2a3e; color: #ddd; border: 1px solid #555; padding: 3px 6px; border-radius: 3px; font-size: 0.82rem; }
+
+  canvas { display: block; border: 1px solid #333; border-radius: 4px; }
+
+  .legend { display: flex; gap: 0; margin-top: 10px; height: 22px; border-radius: 4px; overflow: hidden; max-width: 700px; }
+  .legend-item { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; color: #000; }
+
+  .panel { background: #222; border-radius: 6px; padding: 10px; }
+  .panel h3 { font-size: 0.85rem; margin-bottom: 6px; color: #ccc; }
+  .panel p { font-size: 0.78rem; line-height: 1.4; color: #aaa; margin-bottom: 4px; }
+  .panel .stat { font-size: 0.82rem; color: #fff; margin-bottom: 3px; }
+  .panel .stat span { color: #f0c040; font-weight: bold; }
+  .panel .warn { color: #ff6b6b; }
+  .panel .good { color: #6bcb77; }
+
+  .zone-label { font-size: 0.72rem; padding: 2px 6px; border-radius: 3px; display: inline-block; margin: 2px; font-weight: 600; }
+
+  #tooltip { position: absolute; display: none; background: rgba(0,0,0,0.92); padding: 5px 9px;
+    border-radius: 4px; font-size: 0.78rem; pointer-events: none; z-index: 10; border: 1px solid #555; line-height: 1.35; }
+</style>
+</head>
+<body>
+
+<h1>Mini-CASP Thermal Model</h1>
+<div class="subtitle">Cross-section heat distribution | Continuous weekly feeding model | ePTFE membrane + forced aeration</div>
+
+<div class="controls">
+  <div class="control-row">
+    <label>Ambient temp: <input type="range" id="ambientSlider" min="-10" max="100" step="1" value="75">
+    <span class="value" id="ambientVal">75 F</span></label>
+
+    <label>Season:
+    <select id="seasonSelect">
+      <option value="custom">Custom</option>
+      <option value="summer">Summer (Jul) 85F</option>
+      <option value="earlysummer" selected>Early Summer (Jun) 75F</option>
+      <option value="fall">Early Fall (Sep) 60F</option>
+      <option value="latefall">Late Fall (Nov) 40F</option>
+      <option value="winter">Winter (Jan) 20F</option>
+      <option value="deepwinter">Deep Winter 0F</option>
+      <option value="march">March 38F</option>
+    </select></label>
+  </div>
+  <div class="control-row">
+    <label>Pile age (weeks): <input type="range" id="ageSlider" min="1" max="8" step="1" value="2">
+    <span class="value" id="ageVal">2</span></label>
+
+    <label>Blast gate: <input type="range" id="gateSlider" min="10" max="100" step="5" value="25">
+    <span class="value" id="gateVal">25%</span></label>
+
+    <label><input type="checkbox" id="strawCheck"> Straw bale insulation</label>
+  </div>
+</div>
+
+<div class="layout">
+<div class="main-col">
+  <canvas id="heatmap" width="700" height="500"></canvas>
+  <div class="legend" id="legend"></div>
+</div>
+<div class="side-col">
+  <div class="panel">
+    <h3>Energy Balance</h3>
+    <div class="stat">Generation: <span id="genRate">--</span> BTU/hr</div>
+    <div class="stat">Total loss: <span id="lossRate">--</span> BTU/hr</div>
+    <div class="stat">Net: <span id="netRate">--</span> BTU/hr</div>
+    <div class="stat">Core temp: <span id="coreTemp">--</span></div>
+    <div class="stat">Surface temp: <span id="surfTemp">--</span></div>
+    <div id="statusMsg" class="stat" style="margin-top: 8px;"></div>
+  </div>
+  <div class="panel">
+    <h3>Heat Loss Breakdown</h3>
+    <canvas id="lossChart" width="260" height="140"></canvas>
+  </div>
+  <div class="panel">
+    <h3>Temperature Zones</h3>
+    <span class="zone-label" style="background:#d42; color:#fff">160F+ Overheat (bacteria die)</span>
+    <span class="zone-label" style="background:#e74; color:#fff">131-160F Thermophilic (pathogen kill)</span>
+    <span class="zone-label" style="background:#f90; color:#000">100-131F Active mesophilic</span>
+    <span class="zone-label" style="background:#fc0; color:#000">70-100F Slow mesophilic</span>
+    <span class="zone-label" style="background:#6be; color:#000">40-70F Psychrophilic</span>
+    <span class="zone-label" style="background:#48c; color:#fff">32-40F Near freezing</span>
+    <span class="zone-label" style="background:#339; color:#fff">&lt;32F Frozen</span>
+  </div>
+  <div class="panel">
+    <h3>Notes</h3>
+    <p>Model assumes continuous weekly feeding (always fresh material generating peak heat alongside older material).</p>
+    <p>ePTFE membrane retains ~70% of moisture that would evaporate from an open pile.</p>
+    <p>Fan distributes O2 uniformly via membrane backpressure, so microbial activity is roughly even throughout.</p>
+    <p>Hover over the cross-section for temperature at any point.</p>
+  </div>
+</div>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+const canvas = document.getElementById('heatmap');
+const ctx = canvas.getContext('2d');
+const lossCanvas = document.getElementById('lossChart');
+const lossCtx = lossCanvas.getContext('2d');
+const tooltip = document.getElementById('tooltip');
+
+// Pile geometry (inches)
+const PILE_W = 48; // 4 ft
+const PILE_H = 48; // 4 ft
+const LOG_H = 24;  // logs cover lower 2 ft of sides
+const LOG_THICK = 6; // 6 inch logs
+const PLENUM_H = 2.25;
+const MESH_H = 0.5;
+
+// Canvas mapping
+const ML = 50, MT = 30, MR = 20, MB = 40;
+const PW = canvas.width - ML - MR;
+const PH = canvas.height - MT - MB;
+
+// Grid resolution
+const NX = 96;
+const NY = 96;
+
+// Material R-values (per inch)
+const R_COMPOST = 0.75;   // moist compost (0.6-0.9 range, higher when denser/wetter)
+const R_LOG = 1.0;        // wood
+const R_MEMBRANE = 1.5;   // ePTFE effective (blocks convection)
+const R_AIR_CAVITY = 1.0; // still air
+const R_STRAW = 2.0;      // straw bale per inch
+const STRAW_THICK = 18;   // inches
+const R_GROUND = 0.8;     // soil per inch
+const GROUND_DEPTH = 12;  // effective depth to stable ground temp
+
+// Heat generation based on pile age and weekly feeding
+function heatGeneration(ageWeeks) {
+  // With continuous weekly feeding, there's always fresh + aging material
+  // Fresh material (week 1): 3000 BTU/hr contribution
+  // Each subsequent week decays by ~35%
+  // Total = sum of contributions from each week's material
+  let total = 0;
+  for (let w = 0; w < ageWeeks; w++) {
+    total += 3000 * Math.pow(0.65, w);
+  }
+  // Cap at what a 4x4x4 pile can sustain
+  return Math.min(total, 4500);
+}
+
+// Two-phase thermal model:
+// Phase 1: Compute global equilibrium core temperature (energy balance)
+// Phase 2: Create spatial gradient from core to boundary (parabolic profile)
+
+// Biological activity curve: heat generation depends on temperature
+// Thermophilic bacteria peak at 130-155F, die above 165F, dormant below 40F
+function bioActivityFactor(tempF) {
+  if (tempF < 32) return 0;
+  if (tempF < 50) return (tempF - 32) / 18 * 0.1;     // near-zero
+  if (tempF < 80) return 0.1 + (tempF - 50) / 30 * 0.3; // slow ramp
+  if (tempF < 110) return 0.4 + (tempF - 80) / 30 * 0.4; // mesophilic
+  if (tempF < 131) return 0.8 + (tempF - 110) / 21 * 0.2; // approaching peak
+  if (tempF < 155) return 1.0;                           // peak thermophilic
+  if (tempF < 170) return 1.0 - (tempF - 155) / 15 * 0.8; // rapid decline
+  return 0.05;                                            // near-dead
+}
+
+// Compute global equilibrium core temperature via iterative energy balance
+// Q_gen(T) = U_total * (T_core - T_avg_boundary)
+function computeCoreEquilibrium(heatGenBase, ambient, groundTemp, gateOpen, hasStraw) {
+  // Overall conductance for the system (BTU/hr/F)
+  // Work in feet. R-values given per inch, convert: R_ft = R_per_inch * thickness_inches
+  const strawR = hasStraw ? STRAW_THICK * R_STRAW : 0;
+
+  // From center to each boundary: 24" of compost + boundary layers
+  // R_total per path = R_compost_path + R_boundary (all in hr*F*ft²/BTU)
+  // U per face = Area(ft²) / R_total
+
+  // Top: 16 sq ft
+  const rTopTotal = (24 * R_COMPOST + R_MEMBRANE * 2 + strawR) / 12; // convert inch-R to ft-R
+  const condTop = 16 / rTopTotal;
+
+  // Lower sides (log zone, 2ft tall × 4 sides × 4ft wide = 32 sq ft)
+  const rSideLow = (24 * R_COMPOST + LOG_THICK * R_LOG + strawR) / 12;
+  const condSideLow = 32 / rSideLow;
+
+  // Upper sides (membrane zone, 2ft tall × 4 sides × 4ft wide = 32 sq ft)
+  const rSideHigh = (24 * R_COMPOST + R_MEMBRANE * 2 + strawR) / 12;
+  const condSideHigh = 32 / rSideHigh;
+
+  // Bottom: 16 sq ft
+  const rBotTotal = (24 * R_COMPOST + PLENUM_H * R_AIR_CAVITY + GROUND_DEPTH * R_GROUND) / 12;
+  const condBot = 16 / rBotTotal;
+
+  // Fan convective removal (BTU/hr/F)
+  const fanCond = 2.7 * (gateOpen / 25) * 1.08;
+
+  // Evaporative loss (membrane retains ~70% of moisture)
+  // At ~80F deltaT, open pile loses ~3500 BTU/hr to evaporation
+  // With membrane: ~1050 BTU/hr. Equivalent conductance = 1050/80 ≈ 13 BTU/hr/F
+  const evapCond = 13;
+
+  const uTotal = condTop + condSideLow + condSideHigh + condBot + fanCond + evapCond;
+
+  // Weighted ambient
+  const tAvgBound = (ambient * 0.8 + groundTemp * 0.2);
+
+  // Iterate to find equilibrium (Q_gen at T = Q_loss at T)
+  // Start from a high initial guess — the pile starts hot from active composting
+  // and we want to find the stable high-temperature equilibrium if it exists
+  let tCore = 150; // assume pile starts hot
+  for (let iter = 0; iter < 20; iter++) {
+    const activity = bioActivityFactor(tCore);
+    const qGen = heatGenBase * activity;
+    const qLoss = uTotal * (tCore - tAvgBound);
+    // Newton step: find T where qGen - qLoss = 0
+    const residual = qGen - qLoss;
+    // derivative: d(qGen)/dT - uTotal
+    const dActivity = (bioActivityFactor(tCore + 0.5) - bioActivityFactor(tCore - 0.5));
+    const dResidual = heatGenBase * dActivity - uTotal;
+    if (Math.abs(dResidual) < 0.001) break;
+    tCore -= residual / dResidual;
+    tCore = Math.max(ambient, Math.min(175, tCore));
+  }
+
+  return { tCore, uTotal, tAvgBound };
+}
+
+function computeTemp(x, y, ambient, groundTemp, heatGen, gateOpen, hasStraw, coreTemp, tAvgBound) {
+  const meshTop = PLENUM_H + MESH_H;
+
+  // Below mesh = air cavity
+  if (y < meshTop) {
+    const pileBotTemp = computeTemp(x, meshTop + 0.5, ambient, groundTemp, heatGen, gateOpen, hasStraw, coreTemp, tAvgBound);
+    return groundTemp + (pileBotTemp - groundTemp) * (y / meshTop) * 0.7;
+  }
+
+  const pileTopY = meshTop + PILE_H;
+
+  // Distances to nearest surface (inches)
+  const dTop = Math.max(pileTopY - y, 0.5);
+  const dBot = Math.max(y - meshTop, 0.5);
+  const dLeft = Math.max(x, 0.5);
+  const dRight = Math.max(PILE_W - x, 0.5);
+  const minDist = Math.min(dTop, dBot, dLeft, dRight);
+  const maxDist = 24; // half of 48" = center
+
+  // Normalized depth: 0 at surface, 1 at center
+  const depthNorm = Math.min(minDist / maxDist, 1.0);
+
+  // Parabolic profile: T(d) = T_surface + (T_core - T_surface) * f(d)
+  // f(d) = d * (2 - d) gives a smooth parabola peaking at 1.0
+  const depthFactor = depthNorm * (2 - depthNorm);
+
+  // Surface temperature varies by direction
+  // Top/sides face ambient, bottom faces ground temp
+  const nearestIsBottom = (dBot === minDist);
+  const surfTemp = nearestIsBottom ? groundTemp * 0.4 + ambient * 0.6 : ambient;
+
+  // Boundary R affects how close surface temp gets to ambient
+  const strawR = hasStraw ? STRAW_THICK * R_STRAW : 0;
+  const inLogZone = (y - meshTop) < LOG_H;
+  let rBoundary = R_MEMBRANE * 2 + strawR;
+  if (nearestIsBottom) rBoundary = PLENUM_H * R_AIR_CAVITY + 4;
+  else if (inLogZone && (dLeft === minDist || dRight === minDist)) rBoundary = LOG_THICK * R_LOG + strawR;
+
+  // Surface temp is shifted above ambient due to boundary R-value
+  const rCompostToSurf = minDist * R_COMPOST;
+  const surfaceTempActual = surfTemp + (coreTemp - surfTemp) * rBoundary / (rCompostToSurf + rBoundary);
+
+  // Fan cooling gradient: stronger at bottom
+  const heightFrac = (y - meshTop) / PILE_H;
+  const fanCool = (gateOpen / 100) * 0.15 * (1 - heightFrac * 0.5);
+
+  let temp = surfaceTempActual + (coreTemp - surfaceTempActual) * depthFactor;
+  temp = temp * (1 - fanCool) + ambient * fanCool;
+
+  return Math.max(ambient - 5, Math.min(175, temp));
+}
+
+function tempColor(temp) {
+  if (temp < 32) return [40, 40, 120];
+  if (temp < 40) { const t = (temp - 32) / 8; return lerp3([40, 40, 120], [60, 100, 180], t); }
+  if (temp < 70) { const t = (temp - 40) / 30; return lerp3([60, 100, 180], [80, 180, 220], t); }
+  if (temp < 100) { const t = (temp - 70) / 30; return lerp3([80, 180, 220], [255, 200, 50], t); }
+  if (temp < 131) { const t = (temp - 100) / 31; return lerp3([255, 200, 50], [255, 140, 40], t); }
+  if (temp < 160) { const t = (temp - 131) / 29; return lerp3([255, 140, 40], [220, 60, 40], t); }
+  return lerp3([220, 60, 40], [180, 20, 20], Math.min(1, (temp - 160) / 30));
+}
+
+function lerp3(a, b, t) {
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+}
+
+function inchToCanvasX(ix) { return ML + (ix / PILE_W) * PW; }
+function inchToCanvasY(iy) { return MT + PH - (iy / (PILE_H + PLENUM_H + MESH_H + 6)) * PH; }
+
+let gridTemps = [];
+
+function render() {
+  const ambient = parseFloat(document.getElementById('ambientSlider').value);
+  const age = parseInt(document.getElementById('ageSlider').value);
+  const gateOpen = parseFloat(document.getElementById('gateSlider').value);
+  const hasStraw = document.getElementById('strawCheck').checked;
+
+  document.getElementById('ambientVal').textContent = ambient + ' F';
+  document.getElementById('ageVal').textContent = age;
+  document.getElementById('gateVal').textContent = gateOpen + '%';
+
+  const groundTemp = ambient < 32 ? 32 : 35 + (ambient - 35) * 0.3;
+  const heatGen = heatGeneration(age);
+
+  // Phase 1: compute global core equilibrium
+  const eq = computeCoreEquilibrium(heatGen, ambient, groundTemp, gateOpen, hasStraw);
+
+  // Compute grid
+  gridTemps = [];
+  const totalH = PILE_H + PLENUM_H + MESH_H;
+  let coreMax = -999, surfMin = 999;
+  let sumTemp = 0, countPile = 0;
+
+  for (let iy = 0; iy < NY; iy++) {
+    gridTemps[iy] = [];
+    const y = (iy + 0.5) / NY * totalH;
+    for (let ix = 0; ix < NX; ix++) {
+      const x = (ix + 0.5) / NX * PILE_W;
+      const temp = computeTemp(x, y, ambient, groundTemp, heatGen, gateOpen, hasStraw, eq.tCore, eq.tAvgBound);
+      gridTemps[iy][ix] = temp;
+
+      if (y > PLENUM_H + MESH_H) {
+        sumTemp += temp;
+        countPile++;
+        if (temp > coreMax) coreMax = temp;
+        // Surface detection (edge cells)
+        const isEdge = ix < 3 || ix >= NX - 3 || iy < 3 || iy >= NY - 3;
+        if (isEdge && temp < surfMin) surfMin = temp;
+      }
+    }
+  }
+
+  // Render heatmap
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const cellW = PW / NX;
+  const cellH = PH / NY;
+
+  for (let iy = 0; iy < NY; iy++) {
+    for (let ix = 0; ix < NX; ix++) {
+      const temp = gridTemps[iy][ix];
+      const [r, g, b] = tempColor(temp);
+      ctx.fillStyle = `rgb(${r|0},${g|0},${b|0})`;
+      ctx.fillRect(ML + ix * cellW, MT + (NY - 1 - iy) * cellH, cellW + 0.5, cellH + 0.5);
+    }
+  }
+
+  // Draw structure outlines
+  ctx.strokeStyle = '#fff8';
+  ctx.lineWidth = 1.5;
+
+  // Pile outline
+  const pileBottom = inchToCanvasY(PLENUM_H + MESH_H);
+  const pileTop = inchToCanvasY(totalH);
+  const pileLeft = inchToCanvasX(0);
+  const pileRight = inchToCanvasX(PILE_W);
+  ctx.strokeRect(pileLeft, pileTop, pileRight - pileLeft, pileBottom - pileTop);
+
+  // Plenum zone
+  const plenumTop = inchToCanvasY(PLENUM_H + MESH_H);
+  const plenumBottom = inchToCanvasY(0);
+  ctx.strokeStyle = '#fff4';
+  ctx.setLineDash([4, 4]);
+  ctx.strokeRect(pileLeft, plenumTop, pileRight - pileLeft, plenumBottom - plenumTop);
+  ctx.setLineDash([]);
+
+  // Log outlines
+  ctx.strokeStyle = '#a86';
+  ctx.lineWidth = 2;
+  const logTop = inchToCanvasY(PLENUM_H + MESH_H + LOG_H);
+  const logBottom = inchToCanvasY(PLENUM_H + MESH_H);
+  // Left log
+  ctx.strokeRect(pileLeft - 3, logTop, 8, logBottom - logTop);
+  // Right log
+  ctx.strokeRect(pileRight - 5, logTop, 8, logBottom - logTop);
+
+  // Straw bales (if enabled)
+  if (hasStraw) {
+    ctx.strokeStyle = '#cc8';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 3]);
+    const strawOffset = PW * (STRAW_THICK / PILE_W);
+    // Left straw
+    ctx.strokeRect(pileLeft - strawOffset - 3, pileTop, strawOffset, pileBottom - pileTop);
+    // Right straw
+    ctx.strokeRect(pileRight + 3, pileTop, strawOffset, pileBottom - pileTop);
+    // Top straw
+    const strawTopH = PH * (STRAW_THICK / totalH);
+    ctx.strokeRect(pileLeft, pileTop - strawTopH, pileRight - pileLeft, strawTopH);
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#cc84';
+    ctx.font = '11px sans-serif';
+    ctx.fillText('STRAW', pileLeft - strawOffset + 2, (pileTop + pileBottom) / 2);
+    ctx.fillText('STRAW', pileRight + 6, (pileTop + pileBottom) / 2);
+    ctx.fillText('STRAW BALE LID', pileLeft + 20, pileTop - strawTopH + 14);
+  }
+
+  // Labels
+  ctx.fillStyle = '#fff8';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
+
+  ctx.fillText('ePTFE membrane', (pileLeft + pileRight) / 2, pileTop - 6);
+  ctx.fillText('Air cavity + bricks + pipe', (pileLeft + pileRight) / 2, plenumBottom - 8);
+
+  // Contour lines for key temperatures
+  ctx.lineWidth = 1;
+  const contourTemps = [32, 70, 100, 131, 160];
+  const contourColors = ['#48c', '#6be', '#fc0', '#f90', '#d42'];
+  const contourLabels = ['32F', '70F', '100F', '131F (pathogen kill)', '160F (max safe)'];
+
+  for (let ci = 0; ci < contourTemps.length; ci++) {
+    const target = contourTemps[ci];
+    ctx.strokeStyle = contourColors[ci];
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    let started = false;
+
+    // Trace contour through grid
+    for (let iy = 2; iy < NY - 1; iy++) {
+      for (let ix = 1; ix < NX - 1; ix++) {
+        const t = gridTemps[iy][ix];
+        const tr = gridTemps[iy][ix + 1];
+        if ((t >= target && tr < target) || (t < target && tr >= target)) {
+          const frac = (target - t) / (tr - t);
+          const cx = ML + (ix + frac) * cellW;
+          const cy = MT + (NY - 1 - iy) * cellH;
+          if (!started) { ctx.moveTo(cx, cy); started = true; }
+          else ctx.lineTo(cx, cy);
+        }
+      }
+    }
+    ctx.stroke();
+
+    // Label the contour
+    if (started) {
+      // Find a good label position
+      for (let iy = NY / 2 | 0; iy < NY - 2; iy++) {
+        for (let ix = NX - 10; ix < NX - 2; ix++) {
+          const t = gridTemps[iy][ix];
+          const tr = gridTemps[iy][ix + 1];
+          if ((t >= target && tr < target) || (t < target && tr >= target)) {
+            const frac = (target - t) / (tr - t);
+            const cx = ML + (ix + frac) * cellW;
+            const cy = MT + (NY - 1 - iy) * cellH;
+            ctx.fillStyle = contourColors[ci];
+            ctx.font = 'bold 10px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(contourLabels[ci], cx + 4, cy - 3);
+            break;
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#888';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('0"', pileLeft, pileBottom + 16);
+  ctx.fillText('24"', (pileLeft + pileRight) / 2, pileBottom + 16);
+  ctx.fillText('48"', pileRight, pileBottom + 16);
+  ctx.fillText('Width', (pileLeft + pileRight) / 2, pileBottom + 32);
+
+  ctx.save();
+  ctx.translate(14, (pileTop + pileBottom) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Height', 0, 0);
+  ctx.restore();
+
+  ctx.textAlign = 'right';
+  ctx.fillText('0"', pileLeft - 6, plenumBottom);
+  ctx.fillText('12"', pileLeft - 6, inchToCanvasY(12));
+  ctx.fillText('24"', pileLeft - 6, inchToCanvasY(24));
+  ctx.fillText('36"', pileLeft - 6, inchToCanvasY(36));
+  ctx.fillText('48"', pileLeft - 6, inchToCanvasY(48));
+
+  // Compute heat losses
+  const surfArea = 80; // sq ft total exposed surface
+  const rWall = hasStraw ? (R_COMPOST * 12 + STRAW_THICK * R_STRAW + R_MEMBRANE * 2) : (R_COMPOST * 12 + R_MEMBRANE * 2);
+  const rLogWall = hasStraw ? (R_COMPOST * 12 + LOG_THICK * R_LOG + STRAW_THICK * R_STRAW) : (R_COMPOST * 12 + LOG_THICK * R_LOG);
+  const avgPileTemp = sumTemp / countPile;
+
+  const lossTop = (avgPileTemp - ambient) * 16 / (hasStraw ? rWall + STRAW_THICK * R_STRAW : R_COMPOST * 24 + R_MEMBRANE * 2);
+  const lossSidesUpper = (avgPileTemp - ambient) * 32 / rWall;
+  const lossSidesLower = (avgPileTemp - ambient) * 32 / rLogWall;
+  const lossBottom = (avgPileTemp - groundTemp) * 16 / (R_COMPOST * 12 + PLENUM_H * R_AIR_CAVITY + GROUND_DEPTH * R_GROUND);
+  const lossAeration = 2.7 * (gateOpen / 25) * 1.08 * Math.max(0, avgPileTemp - ambient);
+  const evapLossOpen = 3.5 * 1000; // 3.5 lbs/hr water * 1000 BTU/lb
+  const lossEvap = evapLossOpen * 0.3; // membrane retains 70%
+  const totalLoss = Math.max(0, lossTop + lossSidesUpper + lossSidesLower + lossBottom + lossAeration + lossEvap);
+
+  // Update stats
+  document.getElementById('genRate').textContent = heatGen.toFixed(0);
+  document.getElementById('lossRate').textContent = totalLoss.toFixed(0);
+  const net = heatGen - totalLoss;
+  const netEl = document.getElementById('netRate');
+  netEl.textContent = (net > 0 ? '+' : '') + net.toFixed(0);
+  netEl.className = net > 0 ? 'good' : 'warn';
+
+  document.getElementById('coreTemp').textContent = coreMax.toFixed(0) + ' F';
+  document.getElementById('coreTemp').className = coreMax >= 131 ? 'good' : (coreMax >= 100 ? '' : 'warn');
+  document.getElementById('surfTemp').textContent = surfMin.toFixed(0) + ' F';
+
+  const statusEl = document.getElementById('statusMsg');
+  if (coreMax >= 160) {
+    statusEl.textContent = 'OVERHEATING - open blast gate';
+    statusEl.className = 'stat warn';
+  } else if (coreMax >= 131) {
+    statusEl.textContent = 'THERMOPHILIC - pathogen kill active';
+    statusEl.className = 'stat good';
+  } else if (coreMax >= 100) {
+    statusEl.textContent = 'MESOPHILIC - decomposing but no pathogen kill';
+    statusEl.className = 'stat';
+  } else if (coreMax >= 40) {
+    statusEl.textContent = 'PSYCHROPHILIC - very slow decomposition';
+    statusEl.className = 'stat warn';
+  } else {
+    statusEl.textContent = 'FROZEN - no biological activity';
+    statusEl.className = 'stat warn';
+  }
+
+  // Loss breakdown bar chart
+  lossCtx.fillStyle = '#222';
+  lossCtx.fillRect(0, 0, 260, 140);
+
+  const losses = [
+    { label: 'Top', value: lossTop, color: '#e74' },
+    { label: 'Upper sides', value: lossSidesUpper, color: '#f90' },
+    { label: 'Lower sides', value: lossSidesLower, color: '#fc0' },
+    { label: 'Bottom', value: lossBottom, color: '#6be' },
+    { label: 'Aeration', value: lossAeration, color: '#8cf' },
+    { label: 'Evaporation', value: lossEvap, color: '#c8f' },
+  ];
+
+  const maxLoss = Math.max(...losses.map(l => l.value), 1);
+  const barH = 16;
+  const barGap = 4;
+  const barMaxW = 140;
+  const labelX = 80;
+
+  losses.forEach((l, i) => {
+    const y = 8 + i * (barH + barGap);
+    const w = (l.value / maxLoss) * barMaxW;
+
+    lossCtx.fillStyle = '#aaa';
+    lossCtx.font = '10px sans-serif';
+    lossCtx.textAlign = 'right';
+    lossCtx.fillText(l.label, labelX - 4, y + 12);
+
+    lossCtx.fillStyle = l.color;
+    lossCtx.fillRect(labelX, y, Math.max(w, 1), barH);
+
+    lossCtx.fillStyle = '#fff';
+    lossCtx.textAlign = 'left';
+    lossCtx.font = '9px sans-serif';
+    lossCtx.fillText(l.value.toFixed(0) + ' BTU/hr', labelX + w + 4, y + 12);
+  });
+
+  // Build legend
+  buildLegend();
+}
+
+function buildLegend() {
+  const el = document.getElementById('legend');
+  const steps = [
+    { temp: '<32F', color: tempColor(25) },
+    { temp: '32', color: tempColor(36) },
+    { temp: '50', color: tempColor(50) },
+    { temp: '70', color: tempColor(70) },
+    { temp: '90', color: tempColor(90) },
+    { temp: '110', color: tempColor(110) },
+    { temp: '131', color: tempColor(131) },
+    { temp: '145', color: tempColor(145) },
+    { temp: '160+', color: tempColor(165) },
+  ];
+  el.innerHTML = steps.map(s => {
+    const [r, g, b] = s.color;
+    const textColor = (r + g + b) / 3 > 128 ? '#000' : '#fff';
+    return `<div class="legend-item" style="background:rgb(${r|0},${g|0},${b|0});color:${textColor}">${s.temp}</div>`;
+  }).join('');
+}
+
+// Tooltip
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const cx = e.clientX - rect.left;
+  const cy = e.clientY - rect.top;
+
+  const ix = Math.floor((cx - ML) / (PW / NX));
+  const iy = NY - 1 - Math.floor((cy - MT) / (PH / NY));
+
+  if (ix >= 0 && ix < NX && iy >= 0 && iy < NY && gridTemps[iy]) {
+    const temp = gridTemps[iy][ix];
+    const xInch = ((ix + 0.5) / NX * PILE_W).toFixed(1);
+    const yInch = ((iy + 0.5) / NY * (PILE_H + PLENUM_H + MESH_H)).toFixed(1);
+
+    let zone = '';
+    if (temp >= 160) zone = '<span style="color:#d42">OVERHEAT</span>';
+    else if (temp >= 131) zone = '<span style="color:#6b6">THERMOPHILIC</span>';
+    else if (temp >= 100) zone = '<span style="color:#fc0">MESOPHILIC</span>';
+    else if (temp >= 70) zone = '<span style="color:#6be">SLOW</span>';
+    else if (temp >= 40) zone = '<span style="color:#48c">PSYCHROPHILIC</span>';
+    else if (temp >= 32) zone = '<span style="color:#339">NEAR FROZEN</span>';
+    else zone = '<span style="color:#339">FROZEN</span>';
+
+    tooltip.innerHTML = `<b>${temp.toFixed(1)} F</b> ${zone}<br>Position: ${xInch}" x ${yInch}"`;
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.clientX + 12) + 'px';
+    tooltip.style.top = (e.clientY - 30) + 'px';
+  } else {
+    tooltip.style.display = 'none';
+  }
+});
+
+canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+
+// Season presets
+document.getElementById('seasonSelect').addEventListener('change', (e) => {
+  const presets = {
+    summer: 85, earlysummer: 75, fall: 60, latefall: 40, winter: 20, deepwinter: 0, march: 38
+  };
+  if (presets[e.target.value] !== undefined) {
+    document.getElementById('ambientSlider').value = presets[e.target.value];
+  }
+  render();
+});
+
+// Bind all controls
+['ambientSlider', 'ageSlider', 'gateSlider'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    document.getElementById('seasonSelect').value = 'custom';
+    render();
+  });
+});
+document.getElementById('strawCheck').addEventListener('change', render);
+
+// Initial render
+render();
+</script>
+</body>
+</html>

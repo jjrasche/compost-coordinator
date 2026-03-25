@@ -91,7 +91,9 @@ Visualizes a 4-stage vermicomposting system with adjustable inputs. Shows how ma
 | **Composting** | Pallet bins (4x, salvaged) | $0 |
 | | Pitchforks (2x) | $50 |
 | | Heavy-duty wheelbarrow | $150 |
-| | Collection buckets (20x) | $100 |
+| | 32-gal Brute cans w/ lids (8x, on hand) | $0 |
+| | 2-gal collection buckets (20x) | $100 |
+| | Counter containers (cottage cheese, repurposed) | $0 |
 | | Compost thermometer | $30 |
 | **Cardboard** | Electric leaf shredder | $200 |
 | **Worm Tea** | 50-gal drum + aerator pump | $100 |
@@ -102,6 +104,31 @@ Visualizes a 4-stage vermicomposting system with adjustable inputs. Shows how ma
 | **Lawn Service** | Gas backpack blower | $400 |
 | | Cyclone Rake tow-behind (415 gal) | $2,500 |
 | **Total** | | **~$10,560** |
+
+### Container Allocation (8x 32-gal Brute Cans)
+
+| Use | Qty | Notes |
+|-----|-----|-------|
+| Green staging (food waste) | 2 | Rotate: one filling, one ready to dump into Stage 1 |
+| Brown storage (shredded cardboard) | 2-3 | Keeps cardboard dry and ready to mix |
+| Bucket cleaning station | 1 | Fill with soapy water, batch wash |
+| Spare / future scaling | 2-3 | |
+
+### Collection Container Flow
+
+Subscribers get two containers; crew handles the rest:
+
+1. **Counter container** (48oz cottage cheese container) -- sits on kitchen counter, collects daily scraps
+2. **2-gallon bucket** -- subscriber dumps counter container into this; sits outside or in garage
+3. **32-gal Brute** -- crew empties buckets into Brutes on pickup day, returns clean buckets
+
+### Pest Management
+
+Brute snap-on lids provide sufficient pest exclusion (raccoons, rodents, flies). Not airtight -- vents prevent anaerobic fermentation.
+
+- Layer 2-3" shredded cardboard on top of greens in each Brute to suppress odor and absorb leachate
+- Wipe Brute rims weekly in summer to prevent fruit fly breeding
+- Store outside on hard surface (pallet or gravel pad) near Stage 1 pile, in shade
 
 ### Future Service Add-ons
 

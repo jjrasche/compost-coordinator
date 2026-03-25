@@ -1,0 +1,19 @@
+{
+  "name": "compost-thermal-sim",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "npx tsx test/smoke.ts"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vite": "^7.2.0",
+    "tsx": "^4.19.0"
+  }
+}

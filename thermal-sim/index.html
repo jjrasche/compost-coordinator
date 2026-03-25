@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mini-CASP Thermal Simulator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; overflow: hidden; }
+
+  .app { display: grid; grid-template-columns: 1fr 280px; grid-template-rows: auto 1fr auto; height: 100vh; }
+
+  /* Header */
+  .header { grid-column: 1 / -1; padding: 10px 16px; background: #16162a; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 16px; }
+  .header h1 { font-size: 1.1rem; white-space: nowrap; }
+  .header .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .btn { padding: 4px 12px; border: 1px solid #555; border-radius: 4px; background: #2a2a3e; color: #ddd; cursor: pointer; font-size: 0.8rem; }
+  .btn:hover { background: #3a3a5e; }
+  .btn.primary { background: #3a5a8e; border-color: #5a8abe; }
+  .btn.active { background: #4a6a4e; border-color: #6a9a6e; }
+
+  /* 3D Scene */
+  #scene-container { grid-column: 1; grid-row: 2; overflow: hidden; }
+
+  /* Chart panel (bottom, collapsible) */
+  .chart-panel { grid-column: 1 / -1; grid-row: 3; }
+  .chart-expander { height: 22px; background: #16162a; border-top: 1px solid #333; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; user-select: none; }
+  .chart-expander:hover { background: #222240; }
+  .chart-expander span { font-size: 0.7rem; color: #666; }
+  .chart-expander .arrow { font-size: 0.6rem; color: #888; transition: transform 0.2s; }
+  .chart-expander.open .arrow { transform: rotate(180deg); }
+  #chart-container { overflow: hidden; height: 0; }
+  .chart-panel.open #chart-container { height: 180px; }
+
+  /* Sidebar */
+  .sidebar { grid-column: 2; grid-row: 2; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border-left: 1px solid #333; }
+
+  .panel { background: #222; border-radius: 6px; padding: 10px; }
+  .panel h3 { font-size: 0.82rem; margin-bottom: 6px; color: #aaa; text-transform: uppercase; letter-spacing: 0.05em; }
+  .panel .row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .panel label { font-size: 0.78rem; color: #bbb; min-width: 70px; }
+  .panel input[type=range] { flex: 1; max-width: 100px; }
+  .panel .value { font-size: 0.78rem; font-weight: bold; color: #fff; min-width: 36px; text-align: right; }
+
+  /* Dashboard */
+  .stat { display: flex; justify-content: space-between; margin-bottom: 3px; }
+  .stat .label { font-size: 0.75rem; color: #888; }
+  .stat .val { font-size: 0.82rem; font-weight: bold; }
+
+  /* Field selector */
+  .field-group, .cut-group { display: flex; gap: 0; }
+  .field-btn, .cut-btn { flex: 1; padding: 3px 6px; border: 1px solid #444; background: #2a2a3e; color: #bbb; cursor: pointer; font-size: 0.72rem; text-align: center; }
+  .field-btn:first-child, .cut-btn:first-child { border-radius: 4px 0 0 4px; }
+  .field-btn:last-child, .cut-btn:last-child { border-radius: 0 4px 4px 0; }
+  .field-btn.active, .cut-btn.active { background: #3a5a8e; color: #fff; border-color: #5a8abe; }
+
+  /* Legend */
+  .legend { display: flex; height: 14px; border-radius: 3px; overflow: hidden; margin-top: 6px; }
+  .legend-item { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; font-weight: 600; }
+
+  /* Status */
+  #status { font-size: 1rem; font-weight: bold; text-align: center; padding: 4px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <h1>Mini-CASP Thermal Sim</h1>
+    <div class="controls">
+      <button class="btn primary" id="playBtn">Play</button>
+      <button class="btn" id="resetBtn">Reset</button>
+      <span style="font-size:0.78rem;color:#888;">Day:</span>
+      <span id="simDay" style="font-size:0.85rem;font-weight:bold;">0</span>
+    </div>
+  </div>
+
+  <div id="scene-container"></div>
+
+  <div class="sidebar">
+    <div class="panel">
+      <h3>Environment</h3>
+      <div class="row">
+        <label>Ambient</label>
+        <input type="range" id="ambientSlider" min="-10" max="100" value="75">
+        <span class="value" id="ambientVal">75°F</span>
+      </div>
+      <div class="row">
+        <label>Blast gate</label>
+        <input type="range" id="gateSlider" min="5" max="100" step="5" value="20">
+        <span class="value" id="gateVal">20%</span>
+      </div>
+      <div class="row">
+        <label>Speed</label>
+        <input type="range" id="speedSlider" min="1" max="20" value="2">
+        <span class="value" id="speedVal">2x</span>
+      </div>
+      <div class="row">
+        <label>Straw bales</label>
+        <input type="checkbox" id="strawCheck">
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Aeration</h3>
+      <div class="row">
+        <label>Fan on</label>
+        <input type="range" id="fanOnSlider" min="5" max="120" step="5" value="90">
+        <span class="value" id="fanOnVal">90s</span>
+      </div>
+      <div class="row">
+        <label>Fan off</label>
+        <input type="range" id="fanOffSlider" min="300" max="3600" step="60" value="600">
+        <span class="value" id="fanOffVal">10m</span>
+      </div>
+      <div class="row">
+        <label>Holes/ring</label>
+        <input type="range" id="holesPerRingSlider" min="2" max="12" step="1" value="3">
+        <span class="value" id="holesPerRingVal">3</span>
+      </div>
+      <div class="row">
+        <label>Hole spacing</label>
+        <input type="range" id="holeSpacingSlider" min="1" max="12" step="1" value="4">
+        <span class="value" id="holeSpacingVal">4"</span>
+      </div>
+      <div class="row">
+        <label>Hole size</label>
+        <input type="range" id="holeDiameterSlider" min="0.0625" max="1" step="0.0625" value="0.375">
+        <span class="value" id="holeDiameterVal">⅜"</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Material Cycle</h3>
+      <div class="stat"><span class="label">Week</span><span class="val" id="weekNum">0</span></div>
+      <div class="stat"><span class="label">Month</span><span class="val" id="monthNum">0</span></div>
+      <div class="stat"><span class="label">Last addition</span><span class="val" id="lastAdd">--</span></div>
+      <div class="stat"><span class="label">Last transfer</span><span class="val" id="lastTransfer">--</span></div>
+      <p style="font-size:0.68rem;color:#666;margin-top:4px;">128 gal added weekly. Stage cleared monthly.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Visualization</h3>
+      <div style="margin-bottom:6px;">
+        <label style="font-size:0.72rem;color:#888;">Field:</label>
+        <div class="field-group">
+          <button class="field-btn active" data-field="temperature">Temp</button>
+          <button class="field-btn" data-field="oxygen">O₂</button>
+          <button class="field-btn" data-field="moisture">Moisture</button>
+        </div>
+      </div>
+      <div style="margin-bottom:6px;">
+        <label style="font-size:0.72rem;color:#888;">Cut plane:</label>
+        <div class="cut-group">
+          <button class="cut-btn" data-axis="x">X</button>
+          <button class="cut-btn active" data-axis="y">Y</button>
+          <button class="cut-btn" data-axis="z">Z</button>
+        </div>
+      </div>
+      <div class="row">
+        <label>Cut pos</label>
+        <input type="range" id="cutSlider" min="0" max="100" value="100">
+        <span class="value" id="cutVal">100%</span>
+      </div>
+      <div class="legend" id="tempLegend">
+        <div class="legend-item" style="background:#262676;color:#fff">&lt;32</div>
+        <div class="legend-item" style="background:#3d63b5;color:#fff">50</div>
+        <div class="legend-item" style="background:#4fb5db;color:#000">70</div>
+        <div class="legend-item" style="background:#ffd133;color:#000">100</div>
+        <div class="legend-item" style="background:#ff8c28;color:#000">131</div>
+        <div class="legend-item" style="background:#db3d28;color:#fff">160+</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Dashboard</h3>
+      <div id="status">Ready</div>
+      <div class="stat"><span class="label">Core temp</span><span class="val" id="coreTemp">--</span></div>
+      <div class="stat"><span class="label">Surface temp</span><span class="val" id="surfTemp">--</span></div>
+      <div class="stat"><span class="label">Avg temp</span><span class="val" id="avgTemp">--</span></div>
+      <div class="stat"><span class="label">Heat gen</span><span class="val" id="heatGen">--</span></div>
+      <div class="stat"><span class="label">Avg O₂</span><span class="val" id="avgO2">--</span></div>
+      <div class="stat"><span class="label">Avg moisture</span><span class="val" id="avgMoist">--</span></div>
+      <div class="stat"><span class="label">Pile weight</span><span class="val" id="pileWeight">--</span></div>
+      <div class="stat"><span class="label">Pile volume</span><span class="val" id="pileVol">--</span></div>
+    </div>
+
+    <div class="panel">
+      <h3>Optimizer</h3>
+      <button class="btn primary" id="optimizeBtn" style="width:100%;margin-bottom:4px;">Optimize Fan Settings</button>
+      <button class="btn" id="seasonalBtn" style="width:100%;margin-bottom:4px;">Seasonal Sweep</button>
+      <div style="margin-bottom:4px;">
+        <div style="background:#2a2a3e;border-radius:3px;height:4px;overflow:hidden;">
+          <div id="optimizerProgress" style="background:#5a8abe;height:100%;width:0%;transition:width 0.2s;"></div>
+        </div>
+      </div>
+      <div id="optimizerStatus" style="font-size:0.72rem;color:#888;line-height:1.35;">
+        Phase 1: Coarse grid (4" res) across fan timing + gate<br>
+        Phase 2: Refine top 3 at full resolution<br>
+        Seasonal: Optimal settings per ambient temp
+      </div>
+      <div id="optimizerResults" style="font-size:0.72rem;margin-top:4px;max-height:250px;overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <div class="chart-panel" id="chartPanel">
+    <div class="chart-expander" id="chartExpander">
+      <span class="arrow">&#9650;</span>
+      <span>Timeline Chart</span>
+      <span class="arrow">&#9650;</span>
+    </div>
+    <div id="chart-container"></div>
+  </div>
+</div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

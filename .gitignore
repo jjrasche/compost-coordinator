@@ -1,2 +1,11 @@
 # Claude Code
 .claude/
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Playwright MCP
+.playwright-mcp/

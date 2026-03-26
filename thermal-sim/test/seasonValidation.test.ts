@@ -162,7 +162,7 @@ function runYearSim(): { monthStats: MonthStats[]; decisions: ControllerDecision
         : 35 + (weatherSteps[step].tempF - 35) * 0.3;
     }
 
-    const snapshot = tickStep(grid, config, simTimeHours);
+    const snapshot = tickStep(grid, config, simTimeHours, step);
     simTimeHours += dt;
 
     // Auto controller

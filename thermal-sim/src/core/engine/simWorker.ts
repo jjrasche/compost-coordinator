@@ -56,7 +56,7 @@ function runBatchSim(
   for (let step = 0; step < totalSteps; step++) {
     applyWeatherToConfig(config, weatherSteps, step);
 
-    const snapshot = advanceOneStep(grid, config, simTimeHours, fanMode, controllerState);
+    const snapshot = advanceOneStep(grid, config, simTimeHours, step, fanMode, controllerState);
     simTimeHours += dt;
 
     const stepEvents = applyMaterialCycle(grid, config, simTimeHours, lastWeekAddition, lastMonthTransfer);
@@ -95,10 +95,11 @@ function advanceOneStep(
   grid: CompostGrid,
   config: SimulationConfig,
   simTimeHours: number,
+  stepIndex: number,
   fanMode: 'manual' | 'auto',
   controllerState: FanControllerState,
 ): StepSnapshot {
-  const snapshot = tickStep(grid, config, simTimeHours);
+  const snapshot = tickStep(grid, config, simTimeHours, stepIndex);
 
   if (fanMode === 'auto') {
     const output = computeFanControl(snapshot, controllerState);

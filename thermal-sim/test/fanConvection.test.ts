@@ -5,7 +5,8 @@
  */
 import { CompostGrid, initializeGrid, MATERIAL_CODES } from '../src/core/types/CompostGrid';
 import { createDefaultConfig } from '../src/core/types/SimulationConfig';
-import { computeFanCooling } from '../src/core/engine/fanConvection';
+import { computeFanCooling, computeExitAreaFt2, membraneDerating } from '../src/core/engine/fanConvection';
+import type { InsulationType } from '../src/core/types/SimulationConfig';
 
 let passed = 0;
 let failed = 0;
@@ -236,6 +237,95 @@ console.log('\nRetention latent heat return:');
     assert(resultB.cooling[topIdx] < resultA.cooling[topIdx],
       `Top cell cooling reduced by retention: ${resultB.cooling[topIdx].toFixed(4)} < ${resultA.cooling[topIdx].toFixed(4)}`);
   }
+}
+
+// --- Test 6: Membrane derating pure math ---
+console.log('\nMembrane derating (fan curve):');
+{
+  // No restriction: huge exit area → derating ≈ 1.0
+  const noRestriction = membraneDerating(8, 100, 50, 0.5);
+  assertRange(noRestriction, 7.9, 8.0, `Large exit area: ${noRestriction.toFixed(2)} ≈ 8 CFM`);
+
+  // Impermeable tarp: permeance = 0 → stall
+  const tarpStall = membraneDerating(8, 10, 0, 0.5);
+  assert(tarpStall === 0, `Tarp (permeance=0) stalls fan: ${tarpStall}`);
+
+  // Zero gate → zero regardless
+  const zeroGate = membraneDerating(0, 10, 3, 0.5);
+  assert(zeroGate === 0, `Zero gate flow: ${zeroGate}`);
+
+  // Moderate restriction: small area + ePTFE permeance
+  // capacity = 5 ft² × 3 × 0.5 = 7.5, effective = 8 × 7.5 / (7.5 + 8) = 3.87
+  const moderate = membraneDerating(8, 5, 3, 0.5);
+  assertRange(moderate, 3.5, 4.2, `Moderate restriction: ${moderate.toFixed(2)} CFM (from 8)`);
+}
+
+// --- Test 7: Exit area changes with side insulation ---
+console.log('\nExit area vs insulation:');
+{
+  const configOpen = createDefaultConfig();
+  configOpen.boundaries.sideInsulation = 'none' as InsulationType;
+  const gridOpen = new CompostGrid(configOpen);
+  initializeGrid(gridOpen, configOpen);
+  const areaOpen = computeExitAreaFt2(gridOpen, configOpen);
+
+  const configSealed = createDefaultConfig();
+  configSealed.boundaries.sideInsulation = 'logs' as InsulationType;
+  const gridSealed = new CompostGrid(configSealed);
+  initializeGrid(gridSealed, configSealed);
+  const areaSealed = computeExitAreaFt2(gridSealed, configSealed);
+
+  assert(areaOpen > areaSealed,
+    `Open sides: ${areaOpen.toFixed(1)} ft² > sealed: ${areaSealed.toFixed(1)} ft²`);
+  assert(areaSealed > 0, `Sealed still has top exit: ${areaSealed.toFixed(1)} ft²`);
+  // Top-only should be roughly 30-60% of total (dome has lots of side surface)
+  const topFraction = areaSealed / areaOpen;
+  assertRange(topFraction, 0.05, 0.70,
+    `Top fraction: ${(topFraction * 100).toFixed(0)}% of total surface`);
+}
+
+// --- Test 8: Backpressure reduces cooling ---
+console.log('\nBackpressure reduces cooling with sealed sides:');
+{
+  const configOpen = createDefaultConfig();
+  configOpen.boundaries.ambientTemp = 85;
+  configOpen.boundaries.sideInsulation = 'none' as InsulationType;
+  configOpen.boundaries.coverType = 'eptfe';
+  configOpen.boundaries.membraneRetention = 0.75;
+
+  const configSealed = createDefaultConfig();
+  configSealed.boundaries.ambientTemp = 85;
+  configSealed.boundaries.sideInsulation = 'logs' as InsulationType;
+  configSealed.boundaries.coverType = 'eptfe';
+  configSealed.boundaries.membraneRetention = 0.75;
+
+  const gridOpen = new CompostGrid(configOpen);
+  initializeGrid(gridOpen, configOpen);
+  const gridSealed = new CompostGrid(configSealed);
+  initializeGrid(gridSealed, configSealed);
+
+  for (let i = 0; i < gridOpen.totalCells; i++) {
+    if (gridOpen.material[i] === MATERIAL_CODES.compost) {
+      gridOpen.temp[i] = 140;
+      gridOpen.moisture[i] = 0.55;
+    }
+    if (gridSealed.material[i] === MATERIAL_CODES.compost) {
+      gridSealed.temp[i] = 140;
+      gridSealed.moisture[i] = 0.55;
+    }
+  }
+
+  const resultOpen = computeFanCooling(gridOpen, configOpen);
+  const resultSealed = computeFanCooling(gridSealed, configSealed);
+
+  let totalCoolingOpen = 0, totalCoolingSealed = 0;
+  for (let i = 0; i < gridOpen.totalCells; i++) {
+    if (gridOpen.material[i] === MATERIAL_CODES.compost) totalCoolingOpen += resultOpen.cooling[i];
+    if (gridSealed.material[i] === MATERIAL_CODES.compost) totalCoolingSealed += resultSealed.cooling[i];
+  }
+
+  assert(totalCoolingOpen > totalCoolingSealed,
+    `Open sides cool more: ${totalCoolingOpen.toFixed(2)} > ${totalCoolingSealed.toFixed(2)}`);
 }
 
 // --- Summary ---

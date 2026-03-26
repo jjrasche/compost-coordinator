@@ -34,6 +34,8 @@ export function stepHeat(
   const dx = config.resolution / 12;   // convert inches to feet
 
   const { ambientTemp, groundTemp } = config.boundaries;
+  const rCell = dx / 0.15; // R-value of one compost cell (ft²·hr·°F/BTU)
+  const plenumTopY = Math.ceil(config.pile.plenumHeight / config.resolution);
 
   for (let y = 0; y < ny; y++) {
     for (let z = 0; z < nz; z++) {
@@ -70,14 +72,15 @@ export function stepHeat(
         const moisture = grid.moisture[i];
         const props = getMaterialProperties(matType, moisture);
 
-        // Compute Laplacian ∇²T using central differences
-        // For boundary cells, use ghost cell with appropriate boundary condition
-        const Txm = x > 0     ? grid.temp[grid.idx(x-1, y, z)] : boundaryTemp(x-1, y, z, grid, config);
-        const Txp = x < nx-1  ? grid.temp[grid.idx(x+1, y, z)] : boundaryTemp(x+1, y, z, grid, config);
-        const Tym = y > 0     ? grid.temp[grid.idx(x, y-1, z)] : boundaryTemp(x, y-1, z, grid, config);
-        const Typ = y < ny-1  ? grid.temp[grid.idx(x, y+1, z)] : boundaryTemp(x, y+1, z, grid, config);
-        const Tzm = z > 0     ? grid.temp[grid.idx(x, y, z-1)] : boundaryTemp(x, y, z-1, grid, config);
-        const Tzp = z < nz-1  ? grid.temp[grid.idx(x, y, z+1)] : boundaryTemp(x, y, z+1, grid, config);
+        // Compute Laplacian ∇²T using central differences.
+        // Interior air neighbors at dome surface get R-value weighting
+        // (cover above, insulation to sides) via neighborTempForCompost.
+        const Txm = x > 0     ? neighborTempForCompost(grid.idx(x-1, y, z), T, 0,  y,   grid, config, rCell, plenumTopY) : boundaryTemp(x-1, y, z, grid, config);
+        const Txp = x < nx-1  ? neighborTempForCompost(grid.idx(x+1, y, z), T, 0,  y,   grid, config, rCell, plenumTopY) : boundaryTemp(x+1, y, z, grid, config);
+        const Tym = y > 0     ? neighborTempForCompost(grid.idx(x, y-1, z), T, -1, y-1, grid, config, rCell, plenumTopY) : boundaryTemp(x, y-1, z, grid, config);
+        const Typ = y < ny-1  ? neighborTempForCompost(grid.idx(x, y+1, z), T, 1,  y+1, grid, config, rCell, plenumTopY) : boundaryTemp(x, y+1, z, grid, config);
+        const Tzm = z > 0     ? neighborTempForCompost(grid.idx(x, y, z-1), T, 0,  y,   grid, config, rCell, plenumTopY) : boundaryTemp(x, y, z-1, grid, config);
+        const Tzp = z < nz-1  ? neighborTempForCompost(grid.idx(x, y, z+1), T, 0,  y,   grid, config, rCell, plenumTopY) : boundaryTemp(x, y, z+1, grid, config);
 
         const laplacian = (Txm + Txp + Tym + Typ + Tzm + Tzp - 6 * T) / (dx * dx);
 
@@ -100,7 +103,7 @@ export function stepHeat(
 }
 
 /**
- * Ghost cell temperature for boundary conditions.
+ * Ghost cell temperature for grid boundary conditions (out-of-bounds neighbors).
  * Per-face R-values:
  *   - Bottom (y < 0): ground conduction (fixed temperature)
  *   - Top (y >= ny): cover product R-value (varies by type)
@@ -136,6 +139,48 @@ function boundaryTemp(
   const rSide = INSULATION_PRESETS[sideInsulation].rValue;
   const frac = rSide / (rSide + rCell);
   return ambientTemp + (surfaceTemp - ambientTemp) * frac;
+}
+
+/**
+ * Effective neighbor temperature for the Laplacian, accounting for cover/insulation
+ * at the dome surface.
+ *
+ * When a compost cell's neighbor is air (dome surface), the cover membrane sits
+ * between them. Apply the same R-value ghost-cell logic used at grid boundaries.
+ * Direction determines which R-value: y+1 air = cover, x/z air = insulation.
+ *
+ * For plenum air (below compost, y < plenumTop): no cover — use raw air temp.
+ * Air is the intended airflow path in the plenum, not a boundary.
+ */
+function neighborTempForCompost(
+  neighborIdx: number,
+  compostTemp: number,
+  dy: number,
+  neighborY: number,
+  grid: CompostGrid,
+  config: SimulationConfig,
+  rCell: number,
+  plenumTopY: number,
+): number {
+  const neighborMat = MATERIAL_FROM_CODE[grid.material[neighborIdx]];
+  if (neighborMat !== 'air') return grid.temp[neighborIdx];
+
+  // Plenum air: no cover, raw temperature (air is the intended flow path)
+  if (neighborY < plenumTopY) return grid.temp[neighborIdx];
+
+  // Dome surface air: apply cover or insulation R-value
+  const airTemp = grid.temp[neighborIdx];
+  if (dy > 0) {
+    // Air above compost → cover membrane
+    const rCover = COVER_PRESETS[config.boundaries.coverType].rValue;
+    const frac = rCover / (rCover + rCell);
+    return airTemp + (compostTemp - airTemp) * frac;
+  }
+
+  // Air to the side or below (non-plenum) → insulation R-value
+  const rSide = INSULATION_PRESETS[config.boundaries.sideInsulation].rValue;
+  const frac = rSide / (rSide + rCell);
+  return airTemp + (compostTemp - airTemp) * frac;
 }
 
 /**

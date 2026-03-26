@@ -67,15 +67,20 @@ const winterLogs = runScenario('Winter 20F + Logs', {
   ambientTemp: 20, groundTemp: 35, sideInsulation: 'logs',
 });
 
-// Scenario 5: Cover R-value unit test — verify boundaryTemp uses cover R-value.
-// The dome-shaped pile doesn't reach the grid ceiling, so end-to-end cover R-value
-// tests show no difference. Instead we verify the R-value lookup is wired correctly.
-console.log('\nScenario 5: Cover R-value validation');
+// Scenario 5: Cover R-value end-to-end test.
+// With dome surface boundary fix, cover R-value now affects dome-shaped piles:
+// neighborTempForCompost applies cover R-value at compost/air interfaces.
+// Higher R-value → less heat loss → warmer average temperature.
+console.log('\nScenario 5: Cover R-value end-to-end');
+const coverNone = runScenario('Cover: none', { coverType: 'none', membraneRetention: 0 });
+const coverTarp = runScenario('Cover: tarp', { coverType: 'tarp', membraneRetention: 1.0 });
+console.log(`  None cover avg: ${coverNone.avgTemp.toFixed(1)}F, Tarp cover avg: ${coverTarp.avgTemp.toFixed(1)}F`);
+const coverRetainsHeat = coverTarp.avgTemp > coverNone.avgTemp;
+console.log(`  Tarp warmer than none: ${coverRetainsHeat} (${(coverTarp.avgTemp - coverNone.avgTemp).toFixed(1)}F difference)`);
+// Also verify R-value ordering in presets
 const coverRValueCheck = COVER_PRESETS.tarp.rValue > COVER_PRESETS.none.rValue
   && COVER_PRESETS.eptfe.rValue > COVER_PRESETS.fleece.rValue
   && COVER_PRESETS.none.rValue > 0;
-console.log(`  Cover R-values: none=${COVER_PRESETS.none.rValue}, fleece=${COVER_PRESETS.fleece.rValue}, ePTFE=${COVER_PRESETS.eptfe.rValue}, tarp=${COVER_PRESETS.tarp.rValue}`);
-console.log(`  R-value ordering correct: ${coverRValueCheck}`);
 
 // Validation checks
 console.log('\n=== Validation ===');
@@ -87,6 +92,7 @@ const checks = [
   { name: 'O2 stays above anaerobic threshold (>0.03)', pass: summer.avgOxygen > 0.03 },
   { name: 'Moisture stays in viable range (0.3-0.8)', pass: summer.avgMoisture > 0.3 && summer.avgMoisture < 0.8 },
   { name: 'Cover R-values ordered: none < fleece < ePTFE < tarp', pass: coverRValueCheck },
+  { name: 'Tarp cover retains more heat than no cover', pass: coverRetainsHeat },
 ];
 
 let allPass = true;

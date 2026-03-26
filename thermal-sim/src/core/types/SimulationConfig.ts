@@ -47,19 +47,26 @@ export interface AerationConfig {
 }
 
 /**
- * Cover product presets with moisture retention and thermal R-values.
+ * Cover product presets with moisture retention, thermal R-values, and air permeance.
  *
  * R-value physics (ft²·hr·°F/BTU):
  * - None: still air film only → R-0.17 (ASHRAE interior air film)
  * - Fleece: single layer nonwoven + air films → R-0.5
  * - ePTFE: membrane + trapped dead air layer → R-0.75
  * - Tarp: impermeable plastic + dead air pocket underneath → R-2.0
+ *
+ * Air permeance (CFM/ft²/in.w.g.) — determines backpressure on fan:
+ * - None: no membrane → effectively infinite (use large number)
+ * - Fleece: open nonwoven fabric → ~50 (ASTM D737, ~200 CFM/ft² at 0.5" w.g.)
+ * - ePTFE: microporous PTFE membrane → ~3 (Donaldson Tetratex/Saint-Gobain data,
+ *   designed for vapor permeability, not bulk airflow; 1-5 CFM/ft²/in.w.g. typical)
+ * - Tarp: impermeable plastic → 0 (no airflow through tarp)
  */
 export const COVER_PRESETS = {
-  none:   { label: 'None (open air)',              retention: 0.00, rValue: 0.17 },
-  fleece: { label: 'Fleece (~$2/m\u00B2)',         retention: 0.10, rValue: 0.50 },
-  eptfe:  { label: 'ePTFE membrane (~$8/m\u00B2)', retention: 0.75, rValue: 0.75 },
-  tarp:   { label: 'Tarp (impermeable)',           retention: 1.00, rValue: 2.00 },
+  none:   { label: 'None (open air)',              retention: 0.00, rValue: 0.17, airPermeance: 1000 },
+  fleece: { label: 'Fleece (~$2/m\u00B2)',         retention: 0.10, rValue: 0.50, airPermeance: 50 },
+  eptfe:  { label: 'ePTFE membrane (~$8/m\u00B2)', retention: 0.75, rValue: 0.75, airPermeance: 3 },
+  tarp:   { label: 'Tarp (impermeable)',           retention: 1.00, rValue: 2.00, airPermeance: 0 },
 } as const;
 
 export type CoverType = keyof typeof COVER_PRESETS;

@@ -19,6 +19,20 @@ import { solveOxygenSteadyState } from './oxygenSolver';
 import { computeFanCooling, isFanOn } from './fanConvection';
 import { updateMoisture } from './moistureTransport';
 
+/**
+ * O2 solver skip interval — solve every Nth heat step.
+ *
+ * The O2 Jacobi solver finds steady-state equilibrium, not a time evolution.
+ * Its inputs (temperature, moisture, fan state) change slowly:
+ *   - Temperature: ~1-2°F per step (24 min). Over 5 steps: ~5-10°F.
+ *   - Moisture: updates daily (every 60 steps). Constant between updates.
+ *   - Fan state: duty-cycle-averaged, constant between controller updates.
+ *
+ * Solving every 5th step (every 2 simulated hours) captures meaningful
+ * changes while saving ~32% total compute (Jacobi is ~40% of step cost).
+ */
+export const O2_SOLVE_INTERVAL = 5;
+
 /** Snapshot of aggregate metrics at a point in time */
 export interface StepSnapshot {
   timeHours: number;
@@ -42,16 +56,22 @@ export interface StepSnapshot {
 /**
  * Advance the simulation by one heat timestep.
  * Returns a snapshot of aggregate metrics.
+ *
+ * @param stepIndex - Sequential step counter. O2 solver runs every O2_SOLVE_INTERVAL
+ *   steps (and always on step 0). Pass 0 to force O2 solve.
  */
 export function tickStep(
   grid: CompostGrid,
   config: SimulationConfig,
   simulationTimeHours: number,
+  stepIndex: number = 0,
 ): StepSnapshot {
   const fanOn = isFanOn(simulationTimeHours, config);
 
-  // 1. Solve steady-state O2 field
-  solveOxygenSteadyState(grid, config, fanOn);
+  // 1. Solve steady-state O2 field (skipped on intermediate steps — inputs change slowly)
+  if (stepIndex % O2_SOLVE_INTERVAL === 0) {
+    solveOxygenSteadyState(grid, config, fanOn);
+  }
 
   // 2. Compute biological heat generation per voxel
   const heatSource = grid.heatSourceScratch;
@@ -101,7 +121,7 @@ export function tickStep(
   return collectSnapshot(grid, config, simulationTimeHours, heatSource, fanOn);
 }
 
-function collectSnapshot(
+export function collectSnapshot(
   grid: CompostGrid,
   config: SimulationConfig,
   timeHours: number,
@@ -184,7 +204,7 @@ export function runSimulation(
 
   for (let step = 0; step < totalSteps; step++) {
     const timeHours = step * config.time.heatTimestep;
-    const snapshot = tickStep(grid, config, timeHours);
+    const snapshot = tickStep(grid, config, timeHours, step);
     snapshots.push(snapshot);
   }
 
@@ -255,7 +275,7 @@ export function addFreshMaterial(
  * Every 7 days of average pile age, remove the topmost compost layer (convert to air).
  * Real composting shrinks ~50% over 4 weeks ≈ 2% per day ≈ one 2" layer every 4 days.
  */
-function compactPile(grid: CompostGrid, config: SimulationConfig): void {
+export function compactPile(grid: CompostGrid, config: SimulationConfig): void {
   const { nx, ny, nz } = grid;
   const plenumCellsY = Math.ceil(config.pile.plenumHeight / config.resolution);
 

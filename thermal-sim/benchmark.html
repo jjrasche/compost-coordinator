@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WebGPU Benchmark — Compost Thermal Sim</title>
+  <style>
+    body { font-family: monospace; background: #1a1a2e; color: #e0e0e0; padding: 2rem; }
+    h1 { color: #64ffda; margin-bottom: 0.5rem; }
+    p { color: #888; margin-top: 0; }
+    #benchmark-output {
+      white-space: pre-wrap;
+      background: #0d1117;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #333;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 200px;
+    }
+  </style>
+</head>
+<body>
+  <h1>WebGPU Compute Benchmark</h1>
+  <p>Heat stencil + column sweep: GPU vs CPU comparison</p>
+  <pre id="benchmark-output">Initializing WebGPU...</pre>
+  <script type="module">
+    import { benchmarkAll } from '/src/core/engine/gpu/benchmark.ts';
+    // Also export runBenchmarks for console use
+    window.benchmarkAll = benchmarkAll;
+
+    const el = document.getElementById('benchmark-output');
+
+    if (!navigator.gpu) {
+      el.textContent = 'WebGPU not available in this browser.\nTry Chrome 113+ or Edge 113+ with WebGPU enabled.';
+    } else {
+      el.textContent = 'Running benchmarks...\nThis may take 10-30 seconds.\n\n';
+      try {
+        await benchmarkAll(1000, 1000, 200);
+      } catch (err) {
+        el.textContent += `\nBenchmark failed:\n${err.message}\n\n${err.stack}`;
+      }
+    }
+  </script>
+</body>
+</html>

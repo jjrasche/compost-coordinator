@@ -84,24 +84,9 @@ async function executeSimLoop(
     const stepsThisDay = Math.min(stepsPerDay, totalSteps - globalStepIndex);
     if (stepsThisDay <= 0) break;
 
-    // Run all steps for this day
-    let daySnapshot: StepSnapshot | null = null;
-    for (let s = 0; s < stepsThisDay; s++) {
-      const simTimeHours = globalStepIndex * dt;
-      applyWeatherToConfig(config, weatherSteps, globalStepIndex);
-      daySnapshot = tickStep(grid, config, simTimeHours, globalStepIndex);
+    const daySnapshot = advanceOneDay(grid, config, weatherSteps, fanMode, controllerState, globalStepIndex, stepsThisDay);
+    globalStepIndex += stepsThisDay;
 
-      if (fanMode === 'auto') {
-        const output = computeFanControl(daySnapshot, controllerState);
-        config.aeration.onSeconds = output.onSeconds;
-        config.aeration.offSeconds = output.offSeconds;
-        config.aeration.gateOpening = output.gateOpening;
-      }
-
-      globalStepIndex++;
-    }
-
-    // Material cycle at end of day (matches GPU timing)
     const simTimeHours = globalStepIndex * dt;
     const materialResult = applyMaterialCycle(
       grid, config, simTimeHours, lastWeekAddition, lastMonthTransfer, events,
@@ -109,14 +94,14 @@ async function executeSimLoop(
     lastWeekAddition = materialResult.lastWeekAddition;
     lastMonthTransfer = materialResult.lastMonthTransfer;
 
-    snapshots.push(daySnapshot!);
+    snapshots.push(daySnapshot);
 
     if (onProgress) {
       onProgress({
         percent: (day + 1) / Math.ceil(totalDays),
         currentDay: day + 1,
         totalDays: Math.ceil(totalDays),
-        snapshot: daySnapshot!,
+        snapshot: daySnapshot,
       });
     }
 
@@ -127,6 +112,36 @@ async function executeSimLoop(
   }
 
   return { snapshots, events };
+}
+
+/** Run all timesteps for one day, return end-of-day snapshot. */
+function advanceOneDay(
+  grid: CompostGrid,
+  config: SimulationConfig,
+  weatherSteps: StepWeather[] | null,
+  fanMode: 'manual' | 'auto',
+  controllerState: ReturnType<typeof createControllerState>,
+  startStep: number,
+  stepCount: number,
+): StepSnapshot {
+  const dt = config.time.heatTimestep;
+  let snapshot: StepSnapshot | null = null;
+
+  for (let s = 0; s < stepCount; s++) {
+    const stepIndex = startStep + s;
+    const simTimeHours = stepIndex * dt;
+    applyWeatherToConfig(config, weatherSteps, stepIndex);
+    snapshot = tickStep(grid, config, simTimeHours, stepIndex);
+
+    if (fanMode === 'auto') {
+      const output = computeFanControl(snapshot, controllerState);
+      config.aeration.onSeconds = output.onSeconds;
+      config.aeration.offSeconds = output.offSeconds;
+      config.aeration.gateOpening = output.gateOpening;
+    }
+  }
+
+  return snapshot!;
 }
 
 function applyWeatherToConfig(

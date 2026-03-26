@@ -1,18 +1,33 @@
 /**
  * Steady-state oxygen solver.
  *
- * Since O2 diffuses ~200x faster than heat, it equilibrates between heat steps.
- * Instead of time-stepping O2, we solve the steady-state Poisson equation:
+ * O₂ diffuses ~200× faster than heat, so it equilibrates between heat steps.
+ * We solve the steady-state reaction-diffusion equation:
  *
- *   ∇²O2 = consumption(T, m, O2) / D_o2
+ *   D_eff × ∇²C = S(C)
  *
- * with boundary conditions:
- *   - Plenum air cavity: O2 = 0.21 (atmospheric, refreshed by fan)
- *   - Top membrane: O2 flux proportional to membrane permeability
- *   - Sides/bottom: zero flux (sealed by tarp/logs)
+ * where:
+ *   C    = O₂ mole fraction (0–0.21)
+ *   D_eff = effective O₂ diffusivity in compost pore space
+ *   S(C) = volumetric consumption rate (depends on C through bio activity)
  *
- * Solved iteratively using Jacobi relaxation (simple, parallelizable).
- * Converges in 5-15 iterations for this geometry.
+ * Boundary conditions:
+ *   - Plenum (air/pipe cells): C = 0.21 when fan is on
+ *   - Top membrane: partial exchange with atmosphere
+ *   - Sides/bottom: zero-flux (sealed by tarp/logs)
+ *
+ * Jacobi discretization (3D, 6-point stencil):
+ *   C_new = (sum_neighbors + S_term) / N_neighbors
+ *   where S_term = S(C) × dx² / D_eff
+ *
+ * The consumption term enters as a source in the Poisson equation,
+ * absorbed into the neighbor average. This ensures correct scaling
+ * between diffusion and consumption regardless of consumption magnitude.
+ *
+ * DESIGN NOTE: The fan duty cycle affects O₂ through the plenum boundary
+ * condition (fan on = 0.21, fan off = depleting), NOT through a time-averaged
+ * source term. The solver runs each heat timestep and sees the instantaneous
+ * fan state.
  */
 
 import { CompostGrid, MATERIAL_FROM_CODE } from '../types/CompostGrid';
@@ -23,13 +38,8 @@ import { computeHeatGeneration, computeO2Consumption } from './bioActivity';
 const ATMOSPHERIC_O2 = 0.21;
 
 /**
- * Solve for steady-state O2 distribution.
+ * Solve for steady-state O₂ distribution.
  * Modifies grid.oxygen in place.
- *
- * @param grid - The simulation grid (reads temp, moisture, material; writes oxygen)
- * @param config - Simulation configuration
- * @param fanIsOn - Whether the fan is currently running (affects plenum O2 refresh)
- * @param iterations - Number of Jacobi iterations (default 10)
  */
 export function solveOxygenSteadyState(
   grid: CompostGrid,
@@ -38,9 +48,8 @@ export function solveOxygenSteadyState(
   iterations: number = 10,
 ): void {
   const { nx, ny, nz } = grid;
-  const plenumCellsY = Math.ceil(config.pile.plenumHeight / config.resolution);
-
   const o2Next = grid.o2Scratch;
+  const dx = config.resolution / 12; // cell size in feet
 
   for (let iter = 0; iter < iterations; iter++) {
     for (let y = 0; y < ny; y++) {
@@ -49,69 +58,91 @@ export function solveOxygenSteadyState(
           const i = grid.idx(x, y, z);
           const matType = MATERIAL_FROM_CODE[grid.material[i]];
 
-          // Air cavity and pipe: atmospheric O2 (refreshed by fan or residual)
           if (matType === 'air' || matType === 'pipe') {
-            o2Next[i] = fanIsOn ? ATMOSPHERIC_O2 : Math.max(grid.oxygen[i] * 0.95, 0.10);
+            o2Next[i] = computePlenumO2(grid.oxygen[i], fanIsOn);
             continue;
           }
 
-          // Non-compost solids: no O2
           if (matType !== 'compost') {
             o2Next[i] = 0;
             continue;
           }
 
-          // Compost: Jacobi update
-          // Average of neighbors minus consumption
-          let neighborSum = 0;
-          let neighborCount = 0;
-
-          if (x > 0)    { neighborSum += grid.oxygen[grid.idx(x-1, y, z)]; neighborCount++; }
-          if (x < nx-1) { neighborSum += grid.oxygen[grid.idx(x+1, y, z)]; neighborCount++; }
-          if (y > 0)    { neighborSum += grid.oxygen[grid.idx(x, y-1, z)]; neighborCount++; }
-          if (y < ny-1) { neighborSum += grid.oxygen[grid.idx(x, y+1, z)]; neighborCount++; }
-          if (z > 0)    { neighborSum += grid.oxygen[grid.idx(x, y, z-1)]; neighborCount++; }
-          if (z < nz-1) { neighborSum += grid.oxygen[grid.idx(x, y, z+1)]; neighborCount++; }
-
-          // At boundaries: zero-flux (Neumann) for sealed sides
-          // Top boundary: some O2 exchange through membrane
-          if (y === ny - 1) {
-            neighborSum += ATMOSPHERIC_O2 * 0.3; // membrane lets some O2 in
-            neighborCount++;
-          }
-          if (x === 0 || x === nx - 1 || z === 0 || z === nz - 1) {
-            // Sealed sides: reflect (Neumann zero-flux)
-            // Already handled by not adding a neighbor
-          }
-          if (y === 0) {
-            // Bottom: reflects or gets O2 from plenum below
-            neighborSum += ATMOSPHERIC_O2 * (fanIsOn ? 1.0 : 0.3);
-            neighborCount++;
-          }
-
-          const avgNeighbor = neighborCount > 0 ? neighborSum / neighborCount : grid.oxygen[i];
-
-          // Consumption term: biology consumes O2 proportional to heat generation
-          const heatRate = computeHeatGeneration(
-            grid.temp[i], grid.moisture[i], grid.oxygen[i], grid.materialAge[i],
-          );
-          const consumption = computeO2Consumption(heatRate);
-
-          // Jacobi update for Poisson equation: ∇²O2 = consumption / D_o2
-          // Discretized: o2_new = avg_neighbors - consumption * dx² / D_o2
-          const dx = config.resolution / 12; // feet
-          const props = getMaterialProperties('compost', grid.moisture[i]);
-          const d_o2_ft2hr = props.o2Diffusivity / 144; // convert in²/hr to ft²/hr
-          const consumptionDelta = d_o2_ft2hr > 0
-            ? consumption * dx * dx / d_o2_ft2hr
-            : 0;
-
-          o2Next[i] = Math.max(0.01, Math.min(ATMOSPHERIC_O2, avgNeighbor - consumptionDelta));
+          o2Next[i] = computeCompostO2(grid, config, x, y, z, i, dx, fanIsOn);
         }
       }
     }
 
-    // Copy o2Next back to grid.oxygen for next iteration
     grid.oxygen.set(o2Next);
   }
+}
+
+/** O₂ in plenum air: atmospheric when fan runs, slowly depletes when off. */
+function computePlenumO2(currentO2: number, fanIsOn: boolean): number {
+  if (fanIsOn) return ATMOSPHERIC_O2;
+  // Fan off: plenum O₂ decays as adjacent compost consumes it.
+  // Decay toward ~15% (residual atmospheric diffusion through membrane gaps).
+  return currentO2 * 0.97 + 0.15 * 0.03;
+}
+
+/**
+ * Jacobi update for a single compost cell.
+ *
+ * Poisson equation: ∇²C = S/D
+ * Discretized (3D, uniform grid):
+ *   (sum_neighbors - 6C) / dx² = S / D
+ *   C = (sum_neighbors - S × dx² / D) / 6
+ *
+ * For boundary cells, missing neighbors are replaced by boundary conditions.
+ */
+function computeCompostO2(
+  grid: CompostGrid,
+  config: SimulationConfig,
+  x: number, y: number, z: number,
+  i: number,
+  dx: number,
+  fanIsOn: boolean,
+): number {
+  const { nx, ny, nz } = grid;
+
+  // Sum of all 6 neighbors (or boundary values for edge cells)
+  let neighborSum = 0;
+  let neighborCount = 0;
+
+  if (x > 0)    { neighborSum += grid.oxygen[grid.idx(x-1, y, z)]; neighborCount++; }
+  if (x < nx-1) { neighborSum += grid.oxygen[grid.idx(x+1, y, z)]; neighborCount++; }
+  if (y > 0)    { neighborSum += grid.oxygen[grid.idx(x, y-1, z)]; neighborCount++; }
+  if (y < ny-1) { neighborSum += grid.oxygen[grid.idx(x, y+1, z)]; neighborCount++; }
+  if (z > 0)    { neighborSum += grid.oxygen[grid.idx(x, y, z-1)]; neighborCount++; }
+  if (z < nz-1) { neighborSum += grid.oxygen[grid.idx(x, y, z+1)]; neighborCount++; }
+
+  // Boundary conditions for missing neighbors
+  if (y === ny - 1) {
+    // Top: membrane allows partial O₂ exchange
+    neighborSum += ATMOSPHERIC_O2 * 0.3;
+    neighborCount++;
+  }
+  if (y === 0) {
+    // Bottom: plenum provides O₂ (full when fan on, partial when off)
+    neighborSum += ATMOSPHERIC_O2 * (fanIsOn ? 1.0 : 0.5);
+    neighborCount++;
+  }
+  // Sides: zero-flux Neumann (missing neighbor not added = reflection)
+
+  // Consumption: how much O₂ biology removes at this cell
+  const heatRate = computeHeatGeneration(
+    grid.temp[i], grid.moisture[i], grid.oxygen[i], grid.materialAge[i],
+  );
+  const consumptionPerHr = computeO2Consumption(heatRate);
+
+  // Convert to Poisson source term: S × dx² / D_eff
+  const props = getMaterialProperties('compost', grid.moisture[i]);
+  const dEffFt2Hr = props.o2Diffusivity / 144; // in²/hr → ft²/hr
+  const sourceTerm = dEffFt2Hr > 0
+    ? consumptionPerHr * dx * dx / dEffFt2Hr
+    : 0;
+
+  // Jacobi: C_new = (sum_neighbors - sourceTerm) / neighborCount
+  const raw = (neighborSum - sourceTerm) / neighborCount;
+  return Math.max(0.01, Math.min(ATMOSPHERIC_O2, raw));
 }

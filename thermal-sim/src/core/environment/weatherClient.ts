@@ -53,10 +53,6 @@ function formatDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-function cToF(c: number): number {
-  return c * 9 / 5 + 32;
-}
-
 /**
  * Fetch daily weather from archive endpoint.
  * Returns one entry per day with high/low temp and mean humidity.

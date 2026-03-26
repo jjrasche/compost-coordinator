@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GPU/CPU Parity Test — Compost Thermal Sim</title>
+  <style>
+    body { font-family: monospace; background: #1a1a2e; color: #e0e0e0; padding: 2rem; }
+    h1 { color: #64ffda; margin-bottom: 0.5rem; }
+    p.subtitle { color: #888; margin-top: 0; }
+    #test-output {
+      white-space: pre-wrap;
+      background: #0d1117;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #333;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 200px;
+    }
+    .pass { color: #6b6; }
+    .fail { color: #d42; }
+    .phase { color: #ffcc00; }
+    .metric { color: #7ec8e3; }
+    .timing { color: #888; }
+  </style>
+</head>
+<body>
+  <h1>GPU / CPU Parity Test</h1>
+  <p class="subtitle">30-day sim: fixed weather, auto fan — compares daily snapshots</p>
+  <pre id="test-output">Checking WebGPU...</pre>
+  <script type="module">
+    import { runParityTest } from '/src/core/engine/parityTest.ts';
+
+    const el = document.getElementById('test-output');
+
+    function esc(text) {
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    }
+
+    function log(html) {
+      el.innerHTML += html + '\n';
+    }
+
+    function setProgress(text) {
+      const marker = document.getElementById('progress-line');
+      if (marker) {
+        marker.textContent = text;
+      } else {
+        el.innerHTML += `<span id="progress-line" class="phase">${esc(text)}</span>\n`;
+      }
+    }
+
+    if (!navigator.gpu) {
+      el.textContent = 'WebGPU not available.\nTry Chrome 113+ or Edge 113+ with WebGPU enabled.';
+    } else {
+      el.innerHTML = '';
+      log('Starting parity test (30 days, fixed weather, auto fan)...\n');
+
+      try {
+        const result = await runParityTest((progress) => {
+          const pct = (progress.percent * 100).toFixed(0);
+          setProgress(`[${progress.phase.toUpperCase()}] Day ${progress.currentDay} / ${progress.totalDays} (${pct}%)`);
+        });
+
+        // Clear progress line
+        const marker = document.getElementById('progress-line');
+        if (marker) marker.remove();
+
+        log(`Compared ${result.totalDays} daily snapshots\n`);
+        log('<span class="metric">Metric          Max Delta   Tolerance   Peak Day   Result</span>');
+        log('─'.repeat(65));
+
+        for (const m of result.metrics) {
+          const name = esc(m.metric.padEnd(16));
+          const delta = m.maxDelta.toFixed(4).padStart(10);
+          const tol = m.tolerance.toFixed(4).padStart(10);
+          const day = String(m.maxDeltaDay).padStart(8);
+          const cls = m.passed ? 'pass' : 'fail';
+          const tag = m.passed ? '  PASS' : '  FAIL';
+          log(`${name}${delta}${tol}${day}  <span class="${cls}">${tag.trim()}</span>`);
+        }
+
+        log('─'.repeat(65));
+
+        const cls = result.allPassed ? 'pass' : 'fail';
+        const verdict = result.allPassed ? 'ALL PASSED' : 'SOME FAILED';
+        log(`\nResult: <span class="${cls}">${verdict}</span>`);
+        log(`<span class="timing">CPU: ${result.cpuTimeMs.toFixed(0)}ms   GPU: ${result.gpuTimeMs.toFixed(0)}ms   Speedup: ${(result.cpuTimeMs / result.gpuTimeMs).toFixed(1)}x</span>`);
+      } catch (err) {
+        log(`<span class="fail">\nParity test failed:\n${esc(err.message)}\n\n${esc(err.stack)}</span>`);
+      }
+    }
+  </script>
+</body>
+</html>

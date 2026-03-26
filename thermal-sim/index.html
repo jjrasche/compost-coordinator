@@ -144,6 +144,14 @@
         <label>Start date</label>
         <input type="date" id="startDate" style="flex:1;max-width:120px;font-size:0.72rem;background:#2a2a3e;color:#ddd;border:1px solid #555;border-radius:3px;padding:2px;" value="2025-05-01">
       </div>
+      <div class="row">
+        <label>Engine</label>
+        <select id="engineSelect" style="flex:1;max-width:100px;">
+          <option value="cpu">CPU</option>
+          <option value="gpu">GPU</option>
+        </select>
+        <span class="value" id="engineStatus" style="font-size:0.65rem;color:#666;">CPU</span>
+      </div>
     </div>
 
     <div class="panel">

@@ -22,6 +22,7 @@ import {
 import type {
   WorkerOutMessage, GridCheckpoint, StepWeather, RunMessage,
 } from './core/engine/workerProtocol';
+import { runGpuSimulation, type GpuSimProgress, type GpuSimResult } from './core/engine/gpu/gpuSimRunner';
 
 function formatFraction(inches: number): string {
   const sixteenths = Math.round(inches * 16);
@@ -80,6 +81,11 @@ let weatherMode: 'manual' | string = 'manual';
 
 // Fan mode
 let fanMode: 'manual' | 'auto' = 'manual';
+
+// Engine selection
+let engineMode: 'cpu' | 'gpu' = 'cpu';
+let webGpuAvailable = false;
+let gpuAbortController: AbortController | null = null;
 
 // Playback animation
 let playing = false;
@@ -170,8 +176,9 @@ function handleWorkerError(err: ErrorEvent): void {
   updatePlayButton();
 }
 
-/** Dispatch a full batch computation to the worker. */
+/** Dispatch a full batch computation to the CPU worker. */
 function dispatchBatchSim(): void {
+  abortGpuSim();
   terminateWorker();
   isComputing = true;
   playing = false;
@@ -190,10 +197,121 @@ function dispatchBatchSim(): void {
   simWorker.postMessage(runMessage);
 }
 
+function showEngineUnavailable(reason: string): void {
+  document.getElementById('engineStatus')!.textContent = reason;
+  document.getElementById('engineStatus')!.style.color = '#888';
+  (document.getElementById('engineSelect') as HTMLSelectElement).value = 'cpu';
+  engineMode = 'cpu';
+}
+
+/** Detect WebGPU support and update UI accordingly. */
+async function detectWebGpu(): Promise<boolean> {
+  if (!navigator.gpu) {
+    showEngineUnavailable('No WebGPU');
+    return false;
+  }
+
+  const adapter = await navigator.gpu.requestAdapter();
+  if (!adapter) {
+    showEngineUnavailable('No adapter');
+    return false;
+  }
+
+  document.getElementById('engineStatus')!.textContent = 'GPU ready';
+  document.getElementById('engineStatus')!.style.color = '#6b6';
+  return true;
+}
+
+/** Abort any in-flight GPU simulation. */
+function abortGpuSim(): void {
+  if (gpuAbortController) {
+    gpuAbortController.abort();
+    gpuAbortController = null;
+  }
+}
+
+/** Dispatch a GPU-accelerated simulation with streaming day-by-day output. */
+async function dispatchGpuSim(): Promise<void> {
+  abortGpuSim();
+  terminateWorker();
+  isComputing = true;
+  playing = false;
+  updatePlayButton();
+  showComputingState();
+
+  // Reset chart for streaming mode
+  chart.reset();
+  gridCheckpoints = [];
+
+  gpuAbortController = new AbortController();
+  const runMessage = buildRunMessage();
+
+  try {
+    const result = await runGpuSimulation({
+      config: runMessage.config,
+      weatherSteps: runMessage.weatherSteps,
+      fanMode: runMessage.fanMode,
+      checkpointIntervalHours: runMessage.checkpointIntervalHours,
+      abortSignal: gpuAbortController.signal,
+      onProgress: (progress: GpuSimProgress) => {
+        handleWorkerProgress(progress.percent, progress.currentDay, progress.totalDays);
+
+        // Stream snapshot into chart (progressive fill)
+        chart.recordSnapshot(progress.snapshot);
+        chart.setCurrentTime(progress.snapshot.timeHours);
+        chart.draw();
+
+        // Live dashboard update
+        updateDashboard(progress.snapshot);
+      },
+    });
+
+    handleGpuComplete(result);
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') return;
+    handleGpuError(err as Error);
+  }
+}
+
+/** Handle completed GPU simulation results. */
+function handleGpuComplete(result: GpuSimResult): void {
+  isComputing = false;
+  gpuAbortController = null;
+  document.getElementById('simProgressBar')!.style.width = '100%';
+  document.getElementById('simProgressText')!.textContent = '';
+  document.getElementById('simStatus')!.textContent = `${result.snapshots.length} snapshots (GPU)`;
+
+  gridCheckpoints = result.gridCheckpoints;
+  // Reload chart in batch mode for scrubber support
+  chart.loadBatch(result.snapshots, result.events);
+  scrubTo(0);
+}
+
+/** Handle GPU simulation error. */
+function handleGpuError(err: Error): void {
+  isComputing = false;
+  gpuAbortController = null;
+  document.getElementById('simProgressBar')!.style.width = '0%';
+  document.getElementById('simProgressText')!.textContent = '';
+  document.getElementById('simStatus')!.textContent = 'GPU Error';
+  document.getElementById('status')!.textContent = `GPU error: ${err.message?.slice(0, 50) ?? 'unknown'}`;
+  document.getElementById('status')!.style.color = '#d42';
+  updatePlayButton();
+}
+
+/** Route simulation to the selected engine. */
+function dispatchSim(): void {
+  if (engineMode === 'gpu' && webGpuAvailable) {
+    dispatchGpuSim();
+  } else {
+    dispatchBatchSim();
+  }
+}
+
 /** Debounced recompute — waits for slider drag to finish */
 function scheduleRecompute(): void {
   if (recomputeTimer) clearTimeout(recomputeTimer);
-  recomputeTimer = setTimeout(dispatchBatchSim, 400);
+  recomputeTimer = setTimeout(dispatchSim, 400);
 }
 
 // --- Scrubber ---
@@ -508,6 +626,23 @@ function bindControls(): void {
     }
   }
 
+  // Engine selector
+  const engineSelect = document.getElementById('engineSelect') as HTMLSelectElement;
+  engineSelect.addEventListener('change', () => {
+    engineMode = engineSelect.value as 'cpu' | 'gpu';
+    const statusEl = document.getElementById('engineStatus')!;
+    if (engineMode === 'gpu' && !webGpuAvailable) {
+      statusEl.textContent = 'No WebGPU';
+      statusEl.style.color = '#d42';
+      engineMode = 'cpu';
+      engineSelect.value = 'cpu';
+      return;
+    }
+    statusEl.textContent = engineMode === 'gpu' ? 'GPU' : 'CPU';
+    statusEl.style.color = engineMode === 'gpu' ? '#6b6' : '#666';
+    scheduleRecompute();
+  });
+
   // Field selector
   for (const btn of document.querySelectorAll<HTMLButtonElement>('.field-btn')) {
     btn.addEventListener('click', () => {
@@ -725,6 +860,13 @@ document.addEventListener('DOMContentLoaded', () => {
   updateDashboard(null);
   scene.updateFromGrid(grid, config, false, 0);
 
-  // Auto-compute on boot
-  dispatchBatchSim();
+  // Detect WebGPU, then auto-compute on boot
+  detectWebGpu().then(available => {
+    webGpuAvailable = available;
+    if (available) {
+      engineMode = 'gpu';
+      (document.getElementById('engineSelect') as HTMLSelectElement).value = 'gpu';
+    }
+    dispatchSim();
+  });
 });

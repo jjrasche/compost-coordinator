@@ -5,9 +5,10 @@
  *   1. Determine fan state (on/off based on duty cycle)
  *   2. Solve steady-state O2 field (Poisson, ~10 Jacobi iterations)
  *   3. Compute biological heat generation at each voxel (f(T, m, O2, age))
- *   4. Compute fan convective cooling at each voxel
+ *   4. Column-sweep fan convection: sensible + latent cooling, moisture removal
  *   5. Step heat forward one dt (explicit FDM)
- *   6. Every moistureInterval: update moisture field
+ *   6. Apply fan-driven moisture changes (evaporation/condensation, per timestep)
+ *   7. Every moistureInterval: gravity drainage + biological water production
  */
 
 import { CompostGrid, MATERIAL_FROM_CODE, MATERIAL_CODES, isWithinRepose } from '../types/CompostGrid';
@@ -58,13 +59,22 @@ export function tickStep(
     );
   }
 
-  // 3. Compute fan convective cooling (always applied as effective rate, independent of fan state)
-  const fanCooling = computeFanCooling(grid, config, grid.fanCoolingScratch);
+  // 3. Compute fan convective cooling + moisture removal (duty-cycle-averaged)
+  const { cooling: fanCooling, moistureRemoval } = computeFanCooling(
+    grid, config, grid.fanCoolingScratch, grid.moistureRemovalScratch,
+  );
 
   // 4. Step heat forward
   stepHeat(grid, config, heatSource, fanCooling);
 
-  // 5. Moisture update (daily)
+  // 6. Apply fan-driven moisture changes (evaporation removes, condensation adds)
+  const dt = config.time.heatTimestep;
+  for (let i = 0; i < grid.totalCells; i++) {
+    if (moistureRemoval[i] === 0) continue;
+    grid.moisture[i] = Math.max(0, Math.min(1.0, grid.moisture[i] - moistureRemoval[i] * dt));
+  }
+
+  // 7. Moisture update — gravity drainage + bio water (daily)
   const isNewDay = Math.floor(simulationTimeHours / config.time.moistureInterval)
     !== Math.floor((simulationTimeHours - config.time.heatTimestep) / config.time.moistureInterval);
   if (isNewDay) {
@@ -83,7 +93,7 @@ export function tickStep(
     compactPile(grid, config);
   }
 
-  // 6. Collect metrics
+  // 8. Collect metrics
   return collectSnapshot(grid, config, simulationTimeHours, heatSource, fanOn);
 }
 

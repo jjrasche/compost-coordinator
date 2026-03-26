@@ -12,6 +12,10 @@ import {
   runOptimizationAsync, runSeasonalSweep, configToParams,
   type OptimizationResult, type OptimizationProgress, type SeasonalStrategy,
 } from './core/engine/optimizer';
+import {
+  fetchSeasonSchedule, fetchNormalsSchedule,
+  type WeatherSchedule,
+} from './core/environment/weatherClient';
 
 function formatFraction(inches: number): string {
   const sixteenths = Math.round(inches * 16);
@@ -39,6 +43,10 @@ let chartDrawCounter = 0;    // throttle chart redraws
 interface HistoryEntry { timeHours: number; state: GridStateSnapshot; snap: StepSnapshot; }
 let history: HistoryEntry[] = [];
 let scrubbing = false;  // true when user is dragging the scrubber
+
+// Weather-driven mode
+let weatherSchedule: WeatherSchedule | null = null;
+let weatherMode: 'manual' | string = 'manual'; // 'manual', '2025', '2024', etc., or 'average'
 
 // --- Init ---
 function initSimulation(): void {
@@ -74,6 +82,7 @@ function initSimulation(): void {
 
 function applyUIToConfig(): void {
   const ambient = parseFloat((document.getElementById('ambientSlider') as HTMLInputElement).value);
+  const humidity = parseFloat((document.getElementById('humiditySlider') as HTMLInputElement).value) / 100;
   const gate = parseFloat((document.getElementById('gateSlider') as HTMLInputElement).value) / 100;
   const straw = (document.getElementById('strawCheck') as HTMLInputElement).checked;
   const speed = parseInt((document.getElementById('speedSlider') as HTMLInputElement).value);
@@ -81,6 +90,7 @@ function applyUIToConfig(): void {
   const fanOff = parseInt((document.getElementById('fanOffSlider') as HTMLInputElement).value);
 
   config.boundaries.ambientTemp = ambient;
+  config.boundaries.ambientRH = humidity;
   config.boundaries.groundTemp = ambient < 32 ? 32 : 35 + (ambient - 35) * 0.3;
   config.boundaries.hasStraw = straw;
   config.aeration.gateOpening = gate;
@@ -94,11 +104,28 @@ function applyUIToConfig(): void {
   stepsPerFrame = speed;
 }
 
+/** Apply weather-driven ambient conditions for the current sim hour. */
+function applyWeatherConditions(): void {
+  if (weatherMode === 'manual' || !weatherSchedule) return;
+
+  const conditions = weatherSchedule.lookup(simTimeHours);
+  config.boundaries.ambientTemp = conditions.tempF;
+  config.boundaries.ambientRH = conditions.rh;
+  config.boundaries.groundTemp = conditions.tempF < 32 ? 32 : 35 + (conditions.tempF - 35) * 0.3;
+
+  // Update slider positions to reflect weather-driven values (visual feedback)
+  (document.getElementById('ambientSlider') as HTMLInputElement).value = conditions.tempF.toFixed(0);
+  document.getElementById('ambientVal')!.textContent = conditions.tempF.toFixed(0) + '°F';
+  (document.getElementById('humiditySlider') as HTMLInputElement).value = (conditions.rh * 100).toFixed(0);
+  document.getElementById('humidityVal')!.textContent = (conditions.rh * 100).toFixed(0) + '%';
+}
+
 // --- Simulation Loop ---
 function simLoop(): void {
   if (!running) return;
 
   for (let i = 0; i < stepsPerFrame; i++) {
+    applyWeatherConditions();
     latestSnapshot = tickStep(grid, config, simTimeHours);
     simTimeHours += config.time.heatTimestep;
 
@@ -112,11 +139,11 @@ function simLoop(): void {
       chart.recordEvent({ timeHours: simTimeHours, type: 'transfer' });
     }
 
-    // Weekly material addition (128 gal ≈ 6" layer of greens+browns)
+    // Weekly material addition (120 gal: 40 gal greens + 80 gal browns)
     if (currentWeek > lastWeekAddition) {
-      addFreshMaterial(grid, config, 128);
+      addFreshMaterial(grid, config, 120);
       lastWeekAddition = currentWeek;
-      chart.recordEvent({ timeHours: simTimeHours, type: 'addition', volumeGallons: 128 });
+      chart.recordEvent({ timeHours: simTimeHours, type: 'addition', volumeGallons: 120 });
     }
 
     // Record snapshot to chart (every 4th step to keep data manageable)
@@ -230,14 +257,25 @@ function bindControls(): void {
   });
 
   // Sliders
-  const sliderIds = ['ambientSlider', 'gateSlider', 'speedSlider', 'fanOnSlider', 'fanOffSlider',
+  const sliderIds = ['ambientSlider', 'humiditySlider', 'gateSlider', 'speedSlider', 'fanOnSlider', 'fanOffSlider',
     'holesPerRingSlider', 'holeSpacingSlider', 'holeDiameterSlider'];
   for (const id of sliderIds) {
     document.getElementById(id)!.addEventListener('input', () => {
+      // Manual slider interaction disconnects weather mode
+      if ((id === 'ambientSlider' || id === 'humiditySlider') && weatherMode !== 'manual') {
+        weatherMode = 'manual';
+        weatherSchedule = null;
+        (document.getElementById('weatherSource') as HTMLSelectElement).value = 'manual';
+        document.getElementById('weatherStatus')!.textContent = 'Manual';
+        document.getElementById('startDateRow')!.style.display = 'none';
+      }
+
       applyUIToConfig();
       // Update value displays
       document.getElementById('ambientVal')!.textContent =
         (document.getElementById('ambientSlider') as HTMLInputElement).value + '°F';
+      document.getElementById('humidityVal')!.textContent =
+        (document.getElementById('humiditySlider') as HTMLInputElement).value + '%';
       document.getElementById('gateVal')!.textContent =
         (document.getElementById('gateSlider') as HTMLInputElement).value + '%';
       document.getElementById('speedVal')!.textContent =
@@ -258,6 +296,59 @@ function bindControls(): void {
   }
 
   document.getElementById('strawCheck')!.addEventListener('change', applyUIToConfig);
+
+  // Weather source selector
+  const weatherSelect = document.getElementById('weatherSource') as HTMLSelectElement;
+  const startDateRow = document.getElementById('startDateRow')!;
+  const startDateInput = document.getElementById('startDate') as HTMLInputElement;
+  const weatherStatusEl = document.getElementById('weatherStatus')!;
+
+  weatherSelect.addEventListener('change', () => loadWeatherSource());
+  startDateInput.addEventListener('change', () => {
+    if (weatherMode !== 'manual') loadWeatherSource();
+  });
+
+  async function loadWeatherSource(): Promise<void> {
+    const source = weatherSelect.value;
+    weatherMode = source;
+
+    if (source === 'manual') {
+      weatherSchedule = null;
+      weatherStatusEl.textContent = 'Manual';
+      startDateRow.style.display = 'none';
+      return;
+    }
+
+    startDateRow.style.display = 'flex';
+    const startDate = new Date(startDateInput.value + 'T00:00:00');
+    const durationDays = 210; // ~7 months (full composting season)
+
+    weatherStatusEl.textContent = 'Loading...';
+    weatherStatusEl.style.color = '#fc0';
+
+    try {
+      if (source === 'average') {
+        weatherSchedule = await fetchNormalsSchedule(startDate, durationDays);
+      } else {
+        // Specific year: remap start date to that year
+        const year = parseInt(source);
+        const yearStart = new Date(year, startDate.getMonth(), startDate.getDate());
+        weatherSchedule = await fetchSeasonSchedule(yearStart, durationDays);
+        // Re-anchor schedule to sim time (the schedule internally uses the year's dates,
+        // but lookup is by simHours offset, so it works regardless of year)
+        weatherSchedule.startDate = yearStart;
+      }
+
+      const dayCount = weatherSchedule.days.length;
+      weatherStatusEl.textContent = `${dayCount} days loaded`;
+      weatherStatusEl.style.color = '#6b6';
+    } catch (err) {
+      weatherStatusEl.textContent = `Error: ${(err as Error).message.slice(0, 30)}`;
+      weatherStatusEl.style.color = '#d42';
+      weatherSchedule = null;
+      weatherMode = 'manual';
+    }
+  }
 
   // Field selector
   for (const btn of document.querySelectorAll<HTMLButtonElement>('.field-btn')) {

@@ -19,6 +19,10 @@ export interface PileDimensions {
   /** Plenum height — derived from pipe diameter + 0.5" clearance. Do not set manually. */
   plenumHeight: number;
   porosity: number;      // void fraction of compost (0-1, typically 0.3-0.4)
+  /** Effective particle diameter in inches (for heat/mass transfer correlations) */
+  particleDiameter: number;
+  /** Critical moisture (fraction of FC) below which evaporation enters falling-rate regime */
+  criticalMoisture: number;
 }
 
 export interface AerationConfig {
@@ -42,11 +46,28 @@ export interface AerationConfig {
   holesPerRing: number;
 }
 
+/** Cover product presets with moisture retention fractions */
+export const COVER_PRESETS = {
+  none:   { label: 'None (open air)',        retention: 0.00 },
+  fleece: { label: 'Fleece (~$2/m\u00B2)',   retention: 0.10 },
+  eptfe:  { label: 'ePTFE membrane (~$8/m\u00B2)', retention: 0.75 },
+  tarp:   { label: 'Tarp (impermeable)',     retention: 1.00 },
+} as const;
+
+export type CoverType = keyof typeof COVER_PRESETS;
+
 export interface BoundaryConfig {
   /** Ambient air temperature F */
   ambientTemp: number;
   /** Ground temperature F (stable soil temp below pile) */
   groundTemp: number;
+  /** Ambient relative humidity (0-1) */
+  ambientRH: number;
+  /** Cover type — determines moisture retention fraction */
+  coverType: CoverType;
+  /** Fraction of evaporated moisture returned to pile by cover condensation (0-1).
+   *  Derived from coverType. Do not set manually. */
+  membraneRetention: number;
   /** Log diameter in inches (logs are external, lying on side for edge seal) */
   logDiameter: number;
   /** Whether straw bale insulation is present */
@@ -75,6 +96,8 @@ export function createDefaultConfig(): SimulationConfig {
       height: 60,   // extra headroom for dome above logs
       plenumHeight: 4.5,  // pipeDiameter(4) + 0.5" clearance — bricks must be taller than pipe
       porosity: 0.45,  // void fraction for fresh food waste + browns (bulking agent)
+      particleDiameter: 0.79, // ~20mm — effective d_p for 1/3 food waste + 2/3 shredded cardboard
+      criticalMoisture: 0.55, // FC fraction: constant→falling rate drying transition
     },
     aeration: {
       pipeDiameter: 4,
@@ -90,6 +113,9 @@ export function createDefaultConfig(): SimulationConfig {
     boundaries: {
       ambientTemp: 75,
       groundTemp: 55,
+      ambientRH: 0.50, // Michigan summer average
+      coverType: 'eptfe' as CoverType,
+      membraneRetention: COVER_PRESETS.eptfe.retention,
       logDiameter: 6, // logs lie on side outside pile for edge seal
       hasStraw: false,
       strawThickness: 18,

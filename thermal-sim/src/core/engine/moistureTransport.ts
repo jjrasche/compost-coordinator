@@ -1,10 +1,14 @@
 /**
  * Moisture transport — updated once per simulated day.
  *
- * Three mechanisms:
+ * Two mechanisms (evaporation moved to fanConvection column sweep):
  * 1. Gravity drainage: water moves downward through the pile
- * 2. Evaporation at the top surface: temperature-dependent, reduced by membrane
- * 3. Condensation on membrane underside: recycled back into pile
+ * 2. Biological moisture generation: decomposition produces water
+ *
+ * Airflow-driven evaporation/condensation is handled per-timestep in
+ * fanConvection.ts using psychrometric column sweep with Lewis analogy.
+ * Surface evaporation through the membrane is negligible in a sealed
+ * CASP system — the airstream carries 95%+ of moisture out.
  *
  * Moisture is expressed as fraction of field capacity (0-1).
  */
@@ -48,37 +52,7 @@ export function updateMoisture(
     }
   }
 
-  // Pass 2: Evaporation at top surface
-  for (let z = 0; z < nz; z++) {
-    for (let x = 0; x < nx; x++) {
-      // Find top-most compost cell in this column
-      for (let y = ny - 1; y >= 0; y--) {
-        const i = grid.idx(x, y, z);
-        if (MATERIAL_FROM_CODE[grid.material[i]] !== 'compost') continue;
-
-        const T = grid.temp[i];
-        const m = grid.moisture[i];
-
-        // Evaporation rate increases with temperature
-        // At 150F: high evaporation. At 70F: low.
-        // Membrane retains ~70% of moisture vapor
-        const membraneRetention = 0.70;
-        const evapRate = computeEvapRate(T) * (1 - membraneRetention);
-
-        // Moisture lost per day (fraction of FC)
-        const moistureLost = evapRate * m * 0.05;
-        grid.moisture[i] = Math.max(0, m - moistureLost);
-
-        // Condensation: some of the evaporated moisture condenses on the membrane
-        // and drips back onto the surface. Net effect: membrane recycles moisture.
-        // This is already captured by the retention factor above.
-
-        break; // only top cell in column
-      }
-    }
-  }
-
-  // Pass 3: Biological moisture generation
+  // Pass 2: Biological moisture generation
   // Decomposition produces water as a byproduct (respiration: C6H12O6 + 6O2 → 6CO2 + 6H2O)
   // This slightly increases moisture throughout the pile
   for (let i = 0; i < grid.totalCells; i++) {
@@ -91,13 +65,3 @@ export function updateMoisture(
   }
 }
 
-/**
- * Evaporation rate factor based on temperature.
- * Returns a dimensionless multiplier (0-1) applied to moisture removal.
- */
-function computeEvapRate(tempF: number): number {
-  if (tempF < 60) return 0.05;
-  if (tempF < 100) return 0.05 + (tempF - 60) / 40 * 0.25;
-  if (tempF < 140) return 0.30 + (tempF - 100) / 40 * 0.40;
-  return 0.70 + (Math.min(tempF, 180) - 140) / 40 * 0.30;
-}

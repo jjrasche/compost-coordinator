@@ -32,6 +32,8 @@ export class CompostGrid {
   heatSourceScratch: Float32Array;
   /** Scratch buffer for fan cooling computation */
   fanCoolingScratch: Float32Array;
+  /** Scratch buffer for fan-driven moisture removal (FC/hr, positive = drying) */
+  moistureRemovalScratch: Float32Array;
 
   constructor(config: SimulationConfig) {
     this.resolution = config.resolution;
@@ -49,6 +51,7 @@ export class CompostGrid {
     this.o2Scratch = new Float32Array(this.totalCells);
     this.heatSourceScratch = new Float32Array(this.totalCells);
     this.fanCoolingScratch = new Float32Array(this.totalCells);
+    this.moistureRemovalScratch = new Float32Array(this.totalCells);
   }
 
   /** Convert 3D index to flat index */

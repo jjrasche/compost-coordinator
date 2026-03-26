@@ -85,6 +85,11 @@
         <span class="value" id="ambientVal">75°F</span>
       </div>
       <div class="row">
+        <label>Humidity</label>
+        <input type="range" id="humiditySlider" min="10" max="100" step="5" value="50">
+        <span class="value" id="humidityVal">50%</span>
+      </div>
+      <div class="row">
         <label>Blast gate</label>
         <input type="range" id="gateSlider" min="5" max="100" step="5" value="20">
         <span class="value" id="gateVal">20%</span>
@@ -97,6 +102,22 @@
       <div class="row">
         <label>Straw bales</label>
         <input type="checkbox" id="strawCheck">
+      </div>
+      <div class="row" style="flex-wrap:wrap;">
+        <label>Weather</label>
+        <select id="weatherSource" style="flex:1;max-width:100px;font-size:0.75rem;background:#2a2a3e;color:#ddd;border:1px solid #555;border-radius:3px;padding:2px;">
+          <option value="manual">Manual</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+          <option value="2023">2023</option>
+          <option value="2022">2022</option>
+          <option value="average">10yr Avg</option>
+        </select>
+        <span class="value" id="weatherStatus" style="font-size:0.65rem;color:#666;">Manual</span>
+      </div>
+      <div class="row" id="startDateRow" style="display:none;">
+        <label>Start date</label>
+        <input type="date" id="startDate" style="flex:1;max-width:120px;font-size:0.72rem;background:#2a2a3e;color:#ddd;border:1px solid #555;border-radius:3px;padding:2px;" value="2025-05-01">
       </div>
     </div>
 
@@ -135,7 +156,7 @@
       <div class="stat"><span class="label">Month</span><span class="val" id="monthNum">0</span></div>
       <div class="stat"><span class="label">Last addition</span><span class="val" id="lastAdd">--</span></div>
       <div class="stat"><span class="label">Last transfer</span><span class="val" id="lastTransfer">--</span></div>
-      <p style="font-size:0.68rem;color:#666;margin-top:4px;">128 gal added weekly. Stage cleared monthly.</p>
+      <p style="font-size:0.68rem;color:#666;margin-top:4px;">120 gal added weekly. Stage cleared monthly.</p>
     </div>
 
     <div class="panel">

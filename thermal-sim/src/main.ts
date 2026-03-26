@@ -1,13 +1,16 @@
 /**
  * Compost Thermal Simulator — main entry point.
- * Runs the FDM solver and updates the Three.js visualization.
+ *
+ * Batch computation model:
+ *   Config change → debounce → Web Worker computes full year →
+ *   Timeline shows full projection → scrubber drives 3D view.
  */
 
-import { CompostGrid, initializeGrid, MATERIAL_FROM_CODE, type GridStateSnapshot } from './core/types/CompostGrid';
-import { createDefaultConfig, type SimulationConfig } from './core/types/SimulationConfig';
-import { tickStep, addFreshMaterial, clearStageForTransfer, type StepSnapshot } from './core/engine/tickStep';
+import { CompostGrid, initializeGrid } from './core/types/CompostGrid';
+import { createDefaultConfig, COVER_PRESETS, type SimulationConfig, type CoverType, type InsulationType } from './core/types/SimulationConfig';
+import type { StepSnapshot } from './core/engine/tickStep';
 import { PileScene, type FieldType, type CutAxis } from './viz/PileScene';
-import { TimelineChart } from './viz/TimelineChart';
+import { TimelineChart, type SimEvent } from './viz/TimelineChart';
 import {
   runOptimizationAsync, runSeasonalSweep, configToParams,
   type OptimizationResult, type OptimizationProgress, type SeasonalStrategy,
@@ -16,6 +19,9 @@ import {
   fetchSeasonSchedule, fetchNormalsSchedule,
   type WeatherSchedule,
 } from './core/environment/weatherClient';
+import type {
+  WorkerOutMessage, GridCheckpoint, StepWeather, RunMessage,
+} from './core/engine/workerProtocol';
 
 function formatFraction(inches: number): string {
   const sixteenths = Math.round(inches * 16);
@@ -26,148 +32,251 @@ function formatFraction(inches: number): string {
   return `${sixteenths}/16`;
 }
 
+const LEGENDS: Record<string, string> = {
+  temperature: [
+    '<div class="legend-item" style="background:#262676;color:#fff">&lt;32</div>',
+    '<div class="legend-item" style="background:#3d63b5;color:#fff">50</div>',
+    '<div class="legend-item" style="background:#4fb5db;color:#000">70</div>',
+    '<div class="legend-item" style="background:#ffd133;color:#000">100</div>',
+    '<div class="legend-item" style="background:#ff8c28;color:#000">131</div>',
+    '<div class="legend-item" style="background:#db3d28;color:#fff">160+</div>',
+  ].join(''),
+  oxygen: [
+    '<div class="legend-item" style="background:#b31a1a;color:#fff">0%</div>',
+    '<div class="legend-item" style="background:#e6b31a;color:#000">5%</div>',
+    '<div class="legend-item" style="background:#66cc33;color:#000">10%</div>',
+    '<div class="legend-item" style="background:#33cc33;color:#000">21%</div>',
+  ].join(''),
+  moisture: [
+    '<div class="legend-item" style="background:#996633;color:#fff">&lt;30%</div>',
+    '<div class="legend-item" style="background:#66b34d;color:#000">40%</div>',
+    '<div class="legend-item" style="background:#3380cc;color:#fff">65%</div>',
+    '<div class="legend-item" style="background:#1a3399;color:#fff">100%</div>',
+  ].join(''),
+};
+
+function updateLegend(field: FieldType): void {
+  document.getElementById('tempLegend')!.innerHTML = LEGENDS[field] ?? LEGENDS.temperature;
+}
+
 // --- State ---
 let config = createDefaultConfig();
-let grid = new CompostGrid(config);
+let grid = new CompostGrid(config); // used for 3D display from checkpoints
 let scene: PileScene;
 let chart: TimelineChart;
-let simTimeHours = 0;
-let running = false;
-let stepsPerFrame = 2;  // how many sim steps per animation frame
-let latestSnapshot: StepSnapshot | null = null;
-let lastWeekAddition = -1;   // track which week last had material added
-let lastMonthTransfer = -1;  // track which month last had transfer
-let chartDrawCounter = 0;    // throttle chart redraws
 
-// Grid state history for scrubber replay (snapshot every ~2 sim hours)
-interface HistoryEntry { timeHours: number; state: GridStateSnapshot; snap: StepSnapshot; }
-let history: HistoryEntry[] = [];
-let scrubbing = false;  // true when user is dragging the scrubber
+// Batch sim results
+let gridCheckpoints: GridCheckpoint[] = [];
+let currentScrubberHours = 0;
 
-// Weather-driven mode
+// Worker
+let simWorker: Worker | null = null;
+let recomputeTimer: ReturnType<typeof setTimeout> | null = null;
+let isComputing = false;
+
+// Weather
 let weatherSchedule: WeatherSchedule | null = null;
-let weatherMode: 'manual' | string = 'manual'; // 'manual', '2025', '2024', etc., or 'average'
+let weatherMode: 'manual' | string = 'manual';
 
-// --- Init ---
-function initSimulation(): void {
-  config = createDefaultConfig();
-  applyUIToConfig();
-  grid = new CompostGrid(config);
-  initializeGrid(grid, config);
+// Fan mode
+let fanMode: 'manual' | 'auto' = 'manual';
 
-  const plenumCellsY = Math.ceil(config.pile.plenumHeight / config.resolution);
+// Playback animation
+let playing = false;
+let playbackAnimId = 0;
+let playbackSpeed = 50; // sim hours per real second
 
-  // Start from empty — clear compost above the plenum zone only.
-  // Plenum edge seal (compost curling under at y < plenumCellsY) must stay intact.
-  for (let i = 0; i < grid.totalCells; i++) {
-    if (MATERIAL_FROM_CODE[grid.material[i]] !== 'compost') continue;
-    const { y } = grid.coords(i);
-    if (y < plenumCellsY) continue; // preserve plenum edge seal
-    grid.material[i] = 1; // air
-    grid.temp[i] = config.boundaries.ambientTemp;
-    grid.moisture[i] = 0;
-    grid.oxygen[i] = 0.21;
-    grid.materialAge[i] = 0;
+const HOURS_PER_WEEK = 168;
+const WEEKS_PER_MONTH = 4;
+
+// --- Worker management ---
+
+function createWorker(): Worker {
+  return new Worker(new URL('./core/engine/simWorker.ts', import.meta.url), { type: 'module' });
+}
+
+function terminateWorker(): void {
+  if (simWorker) {
+    simWorker.terminate();
+    simWorker = null;
   }
-
-  simTimeHours = 0;
-  lastWeekAddition = -1;  // first addition at week 0 when sim starts
-  lastMonthTransfer = -1;
-  chartDrawCounter = 0;
-  history = [];
-  chart.reset();
-  scene.updateFromGrid(grid, config, false, 0);
-  updateDashboard(null);
 }
 
-function applyUIToConfig(): void {
-  const ambient = parseFloat((document.getElementById('ambientSlider') as HTMLInputElement).value);
-  const humidity = parseFloat((document.getElementById('humiditySlider') as HTMLInputElement).value) / 100;
-  const gate = parseFloat((document.getElementById('gateSlider') as HTMLInputElement).value) / 100;
-  const straw = (document.getElementById('strawCheck') as HTMLInputElement).checked;
-  const speed = parseInt((document.getElementById('speedSlider') as HTMLInputElement).value);
-  const fanOn = parseInt((document.getElementById('fanOnSlider') as HTMLInputElement).value);
-  const fanOff = parseInt((document.getElementById('fanOffSlider') as HTMLInputElement).value);
-
-  config.boundaries.ambientTemp = ambient;
-  config.boundaries.ambientRH = humidity;
-  config.boundaries.groundTemp = ambient < 32 ? 32 : 35 + (ambient - 35) * 0.3;
-  config.boundaries.hasStraw = straw;
-  config.aeration.gateOpening = gate;
-  config.aeration.onSeconds = fanOn;
-  config.aeration.offSeconds = fanOff;
-  config.aeration.holesPerRing = parseInt((document.getElementById('holesPerRingSlider') as HTMLInputElement).value);
-  config.aeration.holeSpacing = parseInt((document.getElementById('holeSpacingSlider') as HTMLInputElement).value);
-  config.aeration.holeDiameter = parseFloat((document.getElementById('holeDiameterSlider') as HTMLInputElement).value);
-  // Plenum height derived from pipe diameter — bricks must be taller than pipe
-  config.pile.plenumHeight = config.aeration.pipeDiameter + 0.5;
-  stepsPerFrame = speed;
-}
-
-/** Apply weather-driven ambient conditions for the current sim hour. */
-function applyWeatherConditions(): void {
-  if (weatherMode === 'manual' || !weatherSchedule) return;
-
-  const conditions = weatherSchedule.lookup(simTimeHours);
-  config.boundaries.ambientTemp = conditions.tempF;
-  config.boundaries.ambientRH = conditions.rh;
-  config.boundaries.groundTemp = conditions.tempF < 32 ? 32 : 35 + (conditions.tempF - 35) * 0.3;
-
-  // Update slider positions to reflect weather-driven values (visual feedback)
-  (document.getElementById('ambientSlider') as HTMLInputElement).value = conditions.tempF.toFixed(0);
-  document.getElementById('ambientVal')!.textContent = conditions.tempF.toFixed(0) + '°F';
-  (document.getElementById('humiditySlider') as HTMLInputElement).value = (conditions.rh * 100).toFixed(0);
-  document.getElementById('humidityVal')!.textContent = (conditions.rh * 100).toFixed(0) + '%';
-}
-
-// --- Simulation Loop ---
-function simLoop(): void {
-  if (!running) return;
-
-  for (let i = 0; i < stepsPerFrame; i++) {
-    applyWeatherConditions();
-    latestSnapshot = tickStep(grid, config, simTimeHours);
-    simTimeHours += config.time.heatTimestep;
-
-    const currentWeek = Math.floor(simTimeHours / 168);
-    const currentMonth = Math.floor(simTimeHours / (168 * 4));
-
-    // Monthly transfer FIRST (clear the stage, every 4 weeks)
-    if (currentMonth > lastMonthTransfer && currentMonth > 0) {
-      clearStageForTransfer(grid, config);
-      lastMonthTransfer = currentMonth;
-      chart.recordEvent({ timeHours: simTimeHours, type: 'transfer' });
-    }
-
-    // Weekly material addition (120 gal: 40 gal greens + 80 gal browns)
-    if (currentWeek > lastWeekAddition) {
-      addFreshMaterial(grid, config, 120);
-      lastWeekAddition = currentWeek;
-      chart.recordEvent({ timeHours: simTimeHours, type: 'addition', volumeGallons: 120 });
-    }
-
-    // Record snapshot to chart (every 4th step to keep data manageable)
-    if (latestSnapshot && chartDrawCounter % 4 === 0) {
-      chart.recordSnapshot(latestSnapshot);
-    }
-
-    // Save grid state for scrubber replay (~every 2 sim hours = every 5 steps)
-    if (latestSnapshot && chartDrawCounter % 5 === 0) {
-      // Cap history to avoid unbounded memory (~500 entries = ~1000 sim hours)
-      if (history.length > 500) history.splice(0, 50);
-      history.push({ timeHours: simTimeHours, state: grid.saveState(), snap: latestSnapshot });
-    }
-    chartDrawCounter++;
+/** Build per-step weather array from a weather schedule. */
+function buildWeatherSteps(schedule: WeatherSchedule, totalHours: number, dt: number): StepWeather[] {
+  const totalSteps = Math.ceil(totalHours / dt);
+  const steps: StepWeather[] = new Array(totalSteps);
+  for (let i = 0; i < totalSteps; i++) {
+    const simHours = i * dt;
+    const conditions = schedule.lookup(simHours);
+    steps[i] = { tempF: conditions.tempF, rh: conditions.rh };
   }
-
-  scene.updateFromGrid(grid, config, latestSnapshot!.fanOn, simTimeHours);
-  updateDashboard(latestSnapshot);
-
-  // Redraw chart every 3 frames (throttle for performance)
-  if (chartDrawCounter % 3 === 0) chart.draw();
-
-  requestAnimationFrame(simLoop);
+  return steps;
 }
+
+/** Build the RunMessage from current UI state. */
+function buildRunMessage(): RunMessage {
+  const workerConfig = structuredClone(config);
+  const durationDays = parseInt((document.getElementById('durationSelect') as HTMLSelectElement).value);
+  workerConfig.time.totalHours = durationDays * 24;
+
+  const weatherSteps = weatherSchedule ? buildWeatherSteps(weatherSchedule, workerConfig.time.totalHours, workerConfig.time.heatTimestep) : null;
+
+  return {
+    type: 'run',
+    config: workerConfig,
+    weatherSteps,
+    fanMode,
+    checkpointIntervalHours: 24,
+  };
+}
+
+/** Show computing state in progress bar and header. */
+function showComputingState(): void {
+  document.getElementById('simProgressBar')!.style.width = '0%';
+  document.getElementById('simProgressText')!.textContent = 'Computing...';
+  document.getElementById('simStatus')!.textContent = 'Computing...';
+}
+
+/** Update progress bar from worker progress message. */
+function handleWorkerProgress(percent: number, currentDay: number, totalDays: number): void {
+  document.getElementById('simProgressBar')!.style.width = (percent * 100).toFixed(0) + '%';
+  document.getElementById('simProgressText')!.textContent = `Day ${currentDay.toFixed(0)} / ${totalDays.toFixed(0)}`;
+  document.getElementById('simStatus')!.textContent = `Day ${currentDay.toFixed(0)}...`;
+}
+
+/** Handle completed simulation results from worker. */
+function handleSimComplete(workerResult: Extract<WorkerOutMessage, { type: 'complete' }>): void {
+  isComputing = false;
+  document.getElementById('simProgressBar')!.style.width = '100%';
+  document.getElementById('simProgressText')!.textContent = '';
+  document.getElementById('simStatus')!.textContent = `${workerResult.snapshots.length} snapshots`;
+
+  gridCheckpoints = workerResult.gridCheckpoints;
+  chart.loadBatch(workerResult.snapshots, workerResult.events);
+  scrubTo(0);
+  terminateWorker();
+}
+
+/** Handle worker error — show feedback and reset computing state. */
+function handleWorkerError(err: ErrorEvent): void {
+  isComputing = false;
+  document.getElementById('simProgressBar')!.style.width = '0%';
+  document.getElementById('simProgressText')!.textContent = '';
+  document.getElementById('simStatus')!.textContent = 'Error';
+  document.getElementById('status')!.textContent = `Worker error: ${err.message?.slice(0, 50) ?? 'unknown'}`;
+  document.getElementById('status')!.style.color = '#d42';
+  terminateWorker();
+  updatePlayButton();
+}
+
+/** Dispatch a full batch computation to the worker. */
+function dispatchBatchSim(): void {
+  terminateWorker();
+  isComputing = true;
+  playing = false;
+  updatePlayButton();
+  showComputingState();
+
+  const runMessage = buildRunMessage();
+
+  simWorker = createWorker();
+  simWorker.onmessage = (e: MessageEvent<WorkerOutMessage>) => {
+    const workerReply = e.data;
+    if (workerReply.type === 'progress') handleWorkerProgress(workerReply.percent, workerReply.currentDay, workerReply.totalDays);
+    if (workerReply.type === 'complete') handleSimComplete(workerReply);
+  };
+  simWorker.onerror = handleWorkerError;
+  simWorker.postMessage(runMessage);
+}
+
+/** Debounced recompute — waits for slider drag to finish */
+function scheduleRecompute(): void {
+  if (recomputeTimer) clearTimeout(recomputeTimer);
+  recomputeTimer = setTimeout(dispatchBatchSim, 400);
+}
+
+// --- Scrubber ---
+
+/** Find the nearest checkpoint to a given time using binary search. */
+function findNearestCheckpoint(timeHours: number): GridCheckpoint {
+  let lo = 0;
+  let hi = gridCheckpoints.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (gridCheckpoints[mid].timeHours < timeHours) lo = mid + 1;
+    else hi = mid;
+  }
+  // lo is the first checkpoint >= timeHours; compare with predecessor
+  if (lo > 0 && Math.abs(gridCheckpoints[lo - 1].timeHours - timeHours) < Math.abs(gridCheckpoints[lo].timeHours - timeHours)) {
+    return gridCheckpoints[lo - 1];
+  }
+  return gridCheckpoints[lo];
+}
+
+/** Scrub to a specific sim time. Updates 3D scene + dashboard from nearest checkpoint. */
+function scrubTo(timeHours: number): void {
+  if (gridCheckpoints.length === 0) return;
+
+  const nearest = findNearestCheckpoint(timeHours);
+
+  // Restore grid state for 3D visualization
+  grid.restoreState(nearest.state);
+  currentScrubberHours = nearest.timeHours;
+
+  // Update chart scrubber
+  chart.setCurrentTime(nearest.timeHours);
+  chart.draw();
+
+  // Update 3D scene
+  scene.updateFromGrid(grid, config, nearest.snapshot.fanOn, nearest.timeHours);
+
+  // Update dashboard
+  updateDashboard(nearest.snapshot);
+}
+
+// --- Playback animation ---
+
+function startPlayback(): void {
+  if (gridCheckpoints.length === 0) return;
+  playing = true;
+  updatePlayButton();
+
+  let lastTimestamp = 0;
+  const animate = (timestamp: number) => {
+    if (!playing) return;
+    if (lastTimestamp > 0) {
+      const deltaSeconds = (timestamp - lastTimestamp) / 1000;
+      const advanceHours = deltaSeconds * playbackSpeed;
+      const nextHours = currentScrubberHours + advanceHours;
+
+      const maxHours = gridCheckpoints[gridCheckpoints.length - 1].timeHours;
+      if (nextHours >= maxHours) {
+        scrubTo(maxHours);
+        stopPlayback();
+        return;
+      }
+      scrubTo(nextHours);
+    }
+    lastTimestamp = timestamp;
+    playbackAnimId = requestAnimationFrame(animate);
+  };
+  playbackAnimId = requestAnimationFrame(animate);
+}
+
+function stopPlayback(): void {
+  playing = false;
+  cancelAnimationFrame(playbackAnimId);
+  updatePlayButton();
+}
+
+function updatePlayButton(): void {
+  const btn = document.getElementById('playBtn')!;
+  btn.textContent = playing ? '\u23f8 Pause' : '\u25b6 Play';
+  (btn as HTMLButtonElement).disabled = isComputing || gridCheckpoints.length === 0;
+}
+
+// --- Dashboard ---
 
 function updateDashboard(snap: StepSnapshot | null): void {
   const dayEl = document.getElementById('simDay')!;
@@ -191,6 +300,7 @@ function updateDashboard(snap: StepSnapshot | null): void {
     heatEl.textContent = '--';
     o2El.textContent = '--';
     moistEl.textContent = '--';
+    document.getElementById('bioActivity')!.textContent = '--';
     statusEl.textContent = 'Ready';
     weekEl.textContent = '0';
     monthEl.textContent = '0';
@@ -207,6 +317,7 @@ function updateDashboard(snap: StepSnapshot | null): void {
   heatEl.textContent = snap.totalHeatGen.toFixed(0) + ' BTU/hr';
   o2El.textContent = (snap.avgOxygen * 100).toFixed(1) + '%';
   moistEl.textContent = (snap.avgMoisture * 100).toFixed(0) + '% FC';
+  document.getElementById('bioActivity')!.textContent = (snap.avgBioActivity * 100).toFixed(0) + '%';
 
   const weightEl = document.getElementById('pileWeight')!;
   const volEl = document.getElementById('pileVol')!;
@@ -214,12 +325,16 @@ function updateDashboard(snap: StepSnapshot | null): void {
   volEl.textContent = snap.volumeFt3.toFixed(1) + ' ft³';
 
   // Material cycle tracking
-  const currentWeek = Math.floor(snap.timeHours / 168);
-  const currentMonth = Math.floor(snap.timeHours / (168 * 4));
+  const currentWeek = Math.floor(snap.timeHours / HOURS_PER_WEEK);
+  const currentMonth = Math.floor(snap.timeHours / (HOURS_PER_WEEK * WEEKS_PER_MONTH));
   weekEl.textContent = currentWeek.toString();
   monthEl.textContent = currentMonth.toString();
-  lastAddEl.textContent = lastWeekAddition >= 0 ? `Day ${(lastWeekAddition * 7).toFixed(0)}` : '--';
-  lastTransEl.textContent = lastMonthTransfer >= 0 ? `Day ${(lastMonthTransfer * 28).toFixed(0)}` : '--';
+
+  // Derive last add/transfer from time position
+  const lastAddWeek = currentWeek > 0 ? currentWeek : 0;
+  const lastTransMonth = currentMonth > 0 ? currentMonth : -1;
+  lastAddEl.textContent = lastAddWeek >= 0 ? `Day ${(lastAddWeek * 7).toFixed(0)}` : '--';
+  lastTransEl.textContent = lastTransMonth >= 0 ? `Day ${(lastTransMonth * 28).toFixed(0)}` : '--';
 
   if (snap.coreTemp >= 160) {
     statusEl.textContent = 'OVERHEATING';
@@ -240,27 +355,70 @@ function updateDashboard(snap: StepSnapshot | null): void {
 }
 
 // --- UI Bindings ---
+
+function applyUIToConfig(): void {
+  const ambient = parseFloat((document.getElementById('ambientSlider') as HTMLInputElement).value);
+  const humidity = parseFloat((document.getElementById('humiditySlider') as HTMLInputElement).value) / 100;
+  const gate = parseFloat((document.getElementById('gateSlider') as HTMLInputElement).value) / 100;
+  const insulation = (document.getElementById('insulationSelect') as HTMLSelectElement).value as InsulationType;
+  const fanOn = parseInt((document.getElementById('fanOnSlider') as HTMLInputElement).value);
+  const fanOff = parseInt((document.getElementById('fanOffSlider') as HTMLInputElement).value);
+
+  config.boundaries.ambientTemp = ambient;
+  config.boundaries.ambientRH = humidity;
+  config.boundaries.groundTemp = ambient < 32 ? 32 : 35 + (ambient - 35) * 0.3;
+  const coverType = (document.getElementById('coverSelect') as HTMLSelectElement).value as CoverType;
+  config.boundaries.coverType = coverType;
+  config.boundaries.membraneRetention = COVER_PRESETS[coverType].retention;
+  config.boundaries.sideInsulation = insulation;
+  config.aeration.gateOpening = gate;
+  config.aeration.onSeconds = fanOn;
+  config.aeration.offSeconds = fanOff;
+  config.aeration.holesPerRing = parseInt((document.getElementById('holesPerRingSlider') as HTMLInputElement).value);
+  config.aeration.holeSpacing = parseInt((document.getElementById('holeSpacingSlider') as HTMLInputElement).value);
+  config.aeration.holeDiameter = parseFloat((document.getElementById('holeDiameterSlider') as HTMLInputElement).value);
+  config.pile.plenumHeight = config.aeration.pipeDiameter + 0.5;
+}
+
 function bindControls(): void {
+  // Playback
   const playBtn = document.getElementById('playBtn')!;
-  const resetBtn = document.getElementById('resetBtn')!;
-
   playBtn.addEventListener('click', () => {
-    running = !running;
-    playBtn.textContent = running ? 'Pause' : 'Play';
-    if (running) requestAnimationFrame(simLoop);
+    if (playing) stopPlayback();
+    else startPlayback();
   });
 
-  resetBtn.addEventListener('click', () => {
-    running = false;
-    playBtn.textContent = 'Play';
-    initSimulation();
+  const speedSlider = document.getElementById('playbackSpeed') as HTMLInputElement;
+  speedSlider.addEventListener('input', () => {
+    playbackSpeed = parseInt(speedSlider.value);
+    document.getElementById('playbackSpeedVal')!.textContent = playbackSpeed + 'x';
   });
 
-  // Sliders
-  const sliderIds = ['ambientSlider', 'humiditySlider', 'gateSlider', 'speedSlider', 'fanOnSlider', 'fanOffSlider',
-    'holesPerRingSlider', 'holeSpacingSlider', 'holeDiameterSlider'];
-  for (const id of sliderIds) {
-    document.getElementById(id)!.addEventListener('input', () => {
+  // Config sliders — all trigger recompute on mouseup
+  const recomputeSliderIds = ['ambientSlider', 'humiditySlider', 'gateSlider',
+    'fanOnSlider', 'fanOffSlider', 'holesPerRingSlider', 'holeSpacingSlider', 'holeDiameterSlider'];
+
+  for (const id of recomputeSliderIds) {
+    const el = document.getElementById(id) as HTMLInputElement;
+
+    // Live value display on input
+    el.addEventListener('input', () => {
+      updateSliderDisplay(id);
+      applyUIToConfig();
+    });
+
+    // Trigger recompute on mouseup (debounced)
+    el.addEventListener('change', () => {
+      // Manual fan slider interaction disconnects auto fan mode
+      if (['fanOnSlider', 'fanOffSlider', 'gateSlider'].includes(id) && fanMode !== 'manual') {
+        fanMode = 'manual';
+        (document.getElementById('fanModeSelect') as HTMLSelectElement).value = 'manual';
+        document.getElementById('fanConcern')!.textContent = '--';
+        for (const fid of ['fanOnSlider', 'fanOffSlider', 'gateSlider']) {
+          (document.getElementById(fid) as HTMLInputElement).disabled = false;
+        }
+      }
+
       // Manual slider interaction disconnects weather mode
       if ((id === 'ambientSlider' || id === 'humiditySlider') && weatherMode !== 'manual') {
         weatherMode = 'manual';
@@ -271,31 +429,32 @@ function bindControls(): void {
       }
 
       applyUIToConfig();
-      // Update value displays
-      document.getElementById('ambientVal')!.textContent =
-        (document.getElementById('ambientSlider') as HTMLInputElement).value + '°F';
-      document.getElementById('humidityVal')!.textContent =
-        (document.getElementById('humiditySlider') as HTMLInputElement).value + '%';
-      document.getElementById('gateVal')!.textContent =
-        (document.getElementById('gateSlider') as HTMLInputElement).value + '%';
-      document.getElementById('speedVal')!.textContent =
-        (document.getElementById('speedSlider') as HTMLInputElement).value + 'x';
-      document.getElementById('fanOnVal')!.textContent =
-        (document.getElementById('fanOnSlider') as HTMLInputElement).value + 's';
-      const offSec = parseInt((document.getElementById('fanOffSlider') as HTMLInputElement).value);
-      document.getElementById('fanOffVal')!.textContent =
-        offSec >= 60 ? (offSec / 60).toFixed(0) + 'm' : offSec + 's';
-      document.getElementById('holesPerRingVal')!.textContent =
-        (document.getElementById('holesPerRingSlider') as HTMLInputElement).value;
-      document.getElementById('holeSpacingVal')!.textContent =
-        (document.getElementById('holeSpacingSlider') as HTMLInputElement).value + '"';
-      const holeDiam = parseFloat((document.getElementById('holeDiameterSlider') as HTMLInputElement).value);
-      document.getElementById('holeDiameterVal')!.textContent = formatFraction(holeDiam) + '"';
-      scene.updateFromGrid(grid, config, latestSnapshot?.fanOn ?? false, simTimeHours);
+      scheduleRecompute();
     });
   }
 
-  document.getElementById('strawCheck')!.addEventListener('change', applyUIToConfig);
+  // Dropdowns trigger immediate recompute
+  for (const id of ['insulationSelect', 'coverSelect', 'durationSelect']) {
+    document.getElementById(id)!.addEventListener('change', () => {
+      applyUIToConfig();
+      scheduleRecompute();
+    });
+  }
+
+  // Fan mode selector
+  const fanModeSelect = document.getElementById('fanModeSelect') as HTMLSelectElement;
+  fanModeSelect.addEventListener('change', () => {
+    fanMode = fanModeSelect.value as 'manual' | 'auto';
+    const isAuto = fanMode === 'auto';
+    for (const id of ['fanOnSlider', 'fanOffSlider', 'gateSlider']) {
+      (document.getElementById(id) as HTMLInputElement).disabled = isAuto;
+    }
+    if (!isAuto) {
+      document.getElementById('fanConcern')!.textContent = '--';
+      document.getElementById('fanConcern')!.style.color = '#666';
+    }
+    scheduleRecompute();
+  });
 
   // Weather source selector
   const weatherSelect = document.getElementById('weatherSource') as HTMLSelectElement;
@@ -316,12 +475,13 @@ function bindControls(): void {
       weatherSchedule = null;
       weatherStatusEl.textContent = 'Manual';
       startDateRow.style.display = 'none';
+      scheduleRecompute();
       return;
     }
 
     startDateRow.style.display = 'flex';
     const startDate = new Date(startDateInput.value + 'T00:00:00');
-    const durationDays = 210; // ~7 months (full composting season)
+    const durationDays = parseInt((document.getElementById('durationSelect') as HTMLSelectElement).value);
 
     weatherStatusEl.textContent = 'Loading...';
     weatherStatusEl.style.color = '#fc0';
@@ -330,18 +490,16 @@ function bindControls(): void {
       if (source === 'average') {
         weatherSchedule = await fetchNormalsSchedule(startDate, durationDays);
       } else {
-        // Specific year: remap start date to that year
         const year = parseInt(source);
         const yearStart = new Date(year, startDate.getMonth(), startDate.getDate());
         weatherSchedule = await fetchSeasonSchedule(yearStart, durationDays);
-        // Re-anchor schedule to sim time (the schedule internally uses the year's dates,
-        // but lookup is by simHours offset, so it works regardless of year)
         weatherSchedule.startDate = yearStart;
       }
 
       const dayCount = weatherSchedule.days.length;
       weatherStatusEl.textContent = `${dayCount} days loaded`;
       weatherStatusEl.style.color = '#6b6';
+      scheduleRecompute();
     } catch (err) {
       weatherStatusEl.textContent = `Error: ${(err as Error).message.slice(0, 30)}`;
       weatherStatusEl.style.color = '#d42';
@@ -356,6 +514,7 @@ function bindControls(): void {
       document.querySelectorAll('.field-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       scene.field = btn.dataset.field as FieldType;
+      updateLegend(btn.dataset.field as FieldType);
       scene.updateFromGrid(grid, config);
     });
   }
@@ -421,6 +580,31 @@ function bindControls(): void {
   });
 }
 
+function updateSliderDisplay(id: string): void {
+  const el = document.getElementById(id) as HTMLInputElement;
+  switch (id) {
+    case 'ambientSlider':
+      document.getElementById('ambientVal')!.textContent = el.value + '°F'; break;
+    case 'humiditySlider':
+      document.getElementById('humidityVal')!.textContent = el.value + '%'; break;
+    case 'gateSlider':
+      document.getElementById('gateVal')!.textContent = el.value + '%'; break;
+    case 'fanOnSlider':
+      document.getElementById('fanOnVal')!.textContent = el.value + 's'; break;
+    case 'fanOffSlider': {
+      const sec = parseInt(el.value);
+      document.getElementById('fanOffVal')!.textContent = sec >= 60 ? (sec / 60).toFixed(0) + 'm' : sec + 's';
+      break;
+    }
+    case 'holesPerRingSlider':
+      document.getElementById('holesPerRingVal')!.textContent = el.value; break;
+    case 'holeSpacingSlider':
+      document.getElementById('holeSpacingVal')!.textContent = el.value + '"'; break;
+    case 'holeDiameterSlider':
+      document.getElementById('holeDiameterVal')!.textContent = formatFraction(parseFloat(el.value)) + '"'; break;
+  }
+}
+
 function bindApplyButtons(container: HTMLElement): void {
   for (const btn of container.querySelectorAll<HTMLButtonElement>('.apply-btn')) {
     btn.addEventListener('click', () => {
@@ -432,7 +616,6 @@ function bindApplyButtons(container: HTMLElement): void {
       config.aeration.offSeconds = off;
       config.aeration.gateOpening = gate;
 
-      // Update sliders to match
       (document.getElementById('fanOnSlider') as HTMLInputElement).value = on.toString();
       (document.getElementById('fanOffSlider') as HTMLInputElement).value = off.toString();
       (document.getElementById('gateSlider') as HTMLInputElement).value = (gate * 100).toString();
@@ -442,6 +625,8 @@ function bindApplyButtons(container: HTMLElement): void {
 
       btn.textContent = 'Applied';
       btn.style.background = '#4a6a4e';
+
+      scheduleRecompute();
     });
   }
 }
@@ -525,41 +710,21 @@ document.addEventListener('DOMContentLoaded', () => {
   scene = new PileScene(sceneContainer);
   chart = new TimelineChart(chartContainer);
 
-  // Chart expander toggle
-  const chartPanel = document.getElementById('chartPanel')!;
-  const chartExpander = document.getElementById('chartExpander')!;
-  chartExpander.addEventListener('click', () => {
-    chartPanel.classList.toggle('open');
-    chartExpander.classList.toggle('open');
-    requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
-  });
+  // Initialize grid for 3D display (empty pile)
+  grid = new CompostGrid(config);
+  initializeGrid(grid, config);
 
   // Chart seek: click/drag on the chart to scrub through time
   chart.onSeek = (seekTimeHours: number) => {
-    // Pause the simulation while scrubbing
-    if (running) {
-      running = false;
-      document.getElementById('playBtn')!.textContent = 'Play';
-    }
-
-    // Find the nearest history entry
-    if (history.length === 0) return;
-    let nearest = history[0];
-    let nearestDist = Math.abs(nearest.timeHours - seekTimeHours);
-    for (const entry of history) {
-      const dist = Math.abs(entry.timeHours - seekTimeHours);
-      if (dist < nearestDist) { nearest = entry; nearestDist = dist; }
-    }
-
-    // Restore grid state and update visualization
-    grid.restoreState(nearest.state);
-    simTimeHours = nearest.timeHours;
-    chart.setCurrentTime(nearest.timeHours);
-    chart.draw();
-    scene.updateFromGrid(grid, config, nearest.snap.fanOn, nearest.timeHours);
-    updateDashboard(nearest.snap);
+    if (playing) stopPlayback();
+    scrubTo(seekTimeHours);
   };
 
   bindControls();
-  initSimulation();
+  applyUIToConfig();
+  updateDashboard(null);
+  scene.updateFromGrid(grid, config, false, 0);
+
+  // Auto-compute on boot
+  dispatchBatchSim();
 });

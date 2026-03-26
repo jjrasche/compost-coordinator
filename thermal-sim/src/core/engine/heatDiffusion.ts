@@ -12,7 +12,7 @@
 
 import { CompostGrid, MATERIAL_FROM_CODE } from '../types/CompostGrid';
 import { getMaterialProperties } from '../types/VoxelState';
-import type { SimulationConfig } from '../types/SimulationConfig';
+import { COVER_PRESETS, INSULATION_PRESETS, type SimulationConfig } from '../types/SimulationConfig';
 
 /**
  * Advance the temperature field by one timestep using explicit FDM.
@@ -101,21 +101,23 @@ export function stepHeat(
 
 /**
  * Ghost cell temperature for boundary conditions.
- * Returns the effective temperature outside the grid at the given position.
+ * Per-face R-values:
+ *   - Bottom (y < 0): ground conduction (fixed temperature)
+ *   - Top (y >= ny): cover product R-value (varies by type)
+ *   - Sides (x/z boundaries): configurable insulation R-value
  */
 function boundaryTemp(
   x: number, y: number, z: number,
   grid: CompostGrid,
   config: SimulationConfig,
 ): number {
-  const { ambientTemp, groundTemp, hasStraw, strawThickness } = config.boundaries;
+  const { ambientTemp, groundTemp, sideInsulation } = config.boundaries;
 
+  // Bottom face: ground conduction — fixed temperature
   if (y < 0) return groundTemp;
 
   // R-value of one compost grid cell (ft²·hr·°F/BTU)
-  const rCell = (config.resolution / 12) / 0.15; // dx_ft / conductivity
-  // Straw R-value: thickness_ft / conductivity (k_straw ≈ 0.025 BTU/hr/ft/F)
-  const strawR = hasStraw ? (strawThickness / 12) / 0.025 : 0;
+  const rCell = (config.resolution / 12) / 0.15; // dx_ft / k_compost
 
   // Nearest valid surface cell for R-value weighting
   const sx = Math.max(0, Math.min(grid.nx - 1, x));
@@ -123,20 +125,16 @@ function boundaryTemp(
   const sz = Math.max(0, Math.min(grid.nz - 1, z));
   const surfaceTemp = grid.temp[grid.idx(sx, sy, sz)];
 
-  // Top boundary: membrane + still air films (R ≈ 0.75 with wind) + optional straw
+  // Top face: cover R-value varies by product (none=0.17, fleece=0.5, ePTFE=0.75, tarp=2.0)
   if (y >= grid.ny) {
-    const rBoundary = 0.75 + strawR;
-    const frac = rBoundary / (rBoundary + rCell);
+    const rTop = COVER_PRESETS[config.boundaries.coverType].rValue;
+    const frac = rTop / (rTop + rCell);
     return ambientTemp + (surfaceTemp - ambientTemp) * frac;
   }
 
-  // Side boundaries: tarp + membrane + log (all external, uniform R-value)
-  // Log lies on side outside: ~3" average thickness against flat surface, k_wood ≈ 0.08
-  // Plus tarp + membrane air films ≈ 0.5
-  const logR = (config.boundaries.logDiameter / 2 / 12) / 0.08; // half-diameter as average thickness
-  const rBoundary = logR + 0.5 + strawR;
-  const frac = rBoundary / (rBoundary + rCell);
-
+  // Side faces (x or z boundary): insulation preset R-value
+  const rSide = INSULATION_PRESETS[sideInsulation].rValue;
+  const frac = rSide / (rSide + rCell);
   return ambientTemp + (surfaceTemp - ambientTemp) * frac;
 }
 

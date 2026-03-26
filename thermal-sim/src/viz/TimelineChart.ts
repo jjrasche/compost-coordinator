@@ -1,15 +1,16 @@
 /**
  * Canvas-based timeline chart for compost thermal simulation.
  *
- * Renders a dense, visually rich timeline showing:
+ * Two modes:
+ *   - Streaming: snapshots arrive one-by-one during real-time playback (legacy)
+ *   - Batch: full year of snapshots loaded at once; scrubber is the primary UX
+ *
+ * Renders:
  * - Temperature bands (core, avg, surface) as filled area
  * - Thermophilic/mesophilic/frozen zone backgrounds
  * - Vertical bars for material additions (height = volume)
  * - Transfer-out markers
- * - Current time scrubber line
- *
- * Inspired by garden-twin's Recharts panels but implemented as
- * raw Canvas 2D for the vanilla TS stack.
+ * - Draggable scrubber line
  */
 
 import type { StepSnapshot } from '../core/engine/tickStep';
@@ -39,6 +40,8 @@ const COLORS = {
   scrubber: '#fff',
   o2Line: '#66bbee',
   moistLine: '#44aa88',
+  bioLine: '#66cc44',
+  ambientLine: 'rgba(180, 180, 220, 0.4)',
 };
 
 const THERMO_MIN = 131;
@@ -111,7 +114,9 @@ export class TimelineChart {
     this.o2ChartHeight = usable * 0.3;
   }
 
-  /** Record a simulation snapshot */
+  // --- Data loading ---
+
+  /** Record a single simulation snapshot (streaming mode) */
   recordSnapshot(snap: StepSnapshot): void {
     this.snapshots.push({ ...snap });
     this.currentTimeHours = snap.timeHours;
@@ -122,14 +127,38 @@ export class TimelineChart {
     }
   }
 
-  /** Record a material event */
+  /** Load a full batch of snapshots at once (batch mode) */
+  loadBatch(snapshots: StepSnapshot[], events: SimEvent[]): void {
+    this.snapshots = snapshots;
+    this.events = events;
+    if (snapshots.length > 0) {
+      const lastTime = snapshots[snapshots.length - 1].timeHours;
+      this.maxHours = Math.ceil(lastTime / (24 * 7)) * 24 * 7 + 24 * 7;
+      this.currentTimeHours = 0;
+    }
+    this.draw();
+  }
+
+  /** Record a material event (streaming mode) */
   recordEvent(ev: SimEvent): void {
     this.events.push(ev);
   }
 
-  /** Set the scrubber position (called during seek or sim playback) */
+  /** Set the scrubber position */
   setCurrentTime(timeHours: number): void {
     this.currentTimeHours = timeHours;
+  }
+
+  /** Get the snapshot nearest to a given time (for dashboard updates) */
+  findNearestSnapshot(timeHours: number): StepSnapshot | null {
+    if (this.snapshots.length === 0) return null;
+    let nearest = this.snapshots[0];
+    let nearestDist = Math.abs(nearest.timeHours - timeHours);
+    for (const s of this.snapshots) {
+      const dist = Math.abs(s.timeHours - timeHours);
+      if (dist < nearestDist) { nearest = s; nearestDist = dist; }
+    }
+    return nearest;
   }
 
   /** Clear all recorded data */
@@ -155,7 +184,7 @@ export class TimelineChart {
       ctx.fillStyle = '#555';
       ctx.font = '11px system-ui';
       ctx.textAlign = 'center';
-      ctx.fillText('Press Play to see temperature timeline', w / 2, h / 2);
+      ctx.fillText('Change any setting to compute full-year projection', w / 2, h / 2);
       return;
     }
 
@@ -218,15 +247,27 @@ export class TimelineChart {
       ctx.fillText(t + '°F', ox - 4, yScale(t) + 3);
     }
 
-    // X axis labels (weeks)
+    // X axis labels — weeks for short sims, months for year sims
     ctx.textAlign = 'center';
-    for (let week = 0; week <= maxHours / 168; week++) {
-      const x = xScale(week * 168);
-      if (x > ox + plotW) break;
-      ctx.fillStyle = '#333';
-      ctx.fillRect(x, oy, 0.5, plotH);
-      ctx.fillStyle = COLORS.gridText;
-      ctx.fillText('W' + week, x, oy + plotH + 12);
+    const useMonths = maxHours > 24 * 120; // >4 months: show months
+    if (useMonths) {
+      for (let month = 0; month <= maxHours / (24 * 30); month++) {
+        const x = xScale(month * 24 * 30);
+        if (x > ox + plotW) break;
+        ctx.fillStyle = '#333';
+        ctx.fillRect(x, oy, 0.5, plotH);
+        ctx.fillStyle = COLORS.gridText;
+        ctx.fillText('M' + month, x, oy + plotH + 12);
+      }
+    } else {
+      for (let week = 0; week <= maxHours / 168; week++) {
+        const x = xScale(week * 168);
+        if (x > ox + plotW) break;
+        ctx.fillStyle = '#333';
+        ctx.fillRect(x, oy, 0.5, plotH);
+        ctx.fillStyle = COLORS.gridText;
+        ctx.fillText('W' + week, x, oy + plotH + 12);
+      }
     }
 
     // Weight area (behind everything, secondary Y axis)
@@ -234,6 +275,22 @@ export class TimelineChart {
 
     // Event bars (behind temp lines)
     this.drawEvents(ctx, xScale, oy, plotH);
+
+    // Ambient temperature line (faint background, shows weather cause/effect)
+    if (this.hasWeatherData()) {
+      ctx.beginPath();
+      ctx.strokeStyle = COLORS.ambientLine;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      for (let i = 0; i < this.snapshots.length; i++) {
+        const s = this.snapshots[i];
+        const x = xScale(s.timeHours);
+        const y = yScale(s.ambientTemp);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
 
     // Temperature filled bands: core-to-surface range
     this.drawFilledBand(ctx, xScale, yScale, 'coreTemp', 'surfaceTemp', COLORS.coreFill);
@@ -247,17 +304,31 @@ export class TimelineChart {
     this.drawLegendItem(ctx, ox + 4, oy + 4, COLORS.coreTemp, 'Core');
     this.drawLegendItem(ctx, ox + 52, oy + 4, COLORS.avgTemp, 'Avg');
     this.drawLegendItem(ctx, ox + 92, oy + 4, COLORS.surfTemp, 'Surf');
+    if (this.hasWeatherData()) {
+      this.drawLegendItem(ctx, ox + 184, oy + 4, 'rgba(180, 180, 220, 0.7)', 'Ambient');
+    }
 
     // Current time scrubber
-    if (this.currentTimeHours > 0) {
+    if (this.currentTimeHours >= 0) {
       const sx = xScale(this.currentTimeHours);
       ctx.strokeStyle = COLORS.scrubber;
-      ctx.lineWidth = 1;
-      ctx.globalAlpha = 0.4;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.6;
       ctx.beginPath();
       ctx.moveTo(sx, oy);
       ctx.lineTo(sx, oy + plotH);
       ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Scrubber handle (triangle at top)
+      ctx.fillStyle = COLORS.scrubber;
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(sx - 4, oy);
+      ctx.lineTo(sx + 4, oy);
+      ctx.lineTo(sx, oy + 6);
+      ctx.closePath();
+      ctx.fill();
       ctx.globalAlpha = 1;
     }
 
@@ -324,14 +395,47 @@ export class TimelineChart {
     }
     ctx.stroke();
 
+    // Bio activity line (0-1 maps to 0-1)
+    ctx.beginPath();
+    ctx.strokeStyle = COLORS.bioLine;
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < this.snapshots.length; i++) {
+      const s = this.snapshots[i];
+      const x = xScale(s.timeHours);
+      const y = yScale(s.avgBioActivity);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Scrubber line continues into bottom panel
+    if (this.currentTimeHours >= 0) {
+      const sx = xScale(this.currentTimeHours);
+      ctx.strokeStyle = COLORS.scrubber;
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath();
+      ctx.moveTo(sx, oy);
+      ctx.lineTo(sx, oy + ch);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
     // Legend
     this.drawLegendItem(ctx, ox + 4, oy + 2, COLORS.o2Line, 'O\u2082');
     this.drawLegendItem(ctx, ox + 40, oy + 2, COLORS.moistLine, 'Moist');
+    this.drawLegendItem(ctx, ox + 90, oy + 2, COLORS.bioLine, 'Bio %');
 
     // Border
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 1;
     ctx.strokeRect(ox, oy, plotW, ch);
+  }
+
+  /** Detect weather mode by checking if ambient temp varies across snapshots */
+  private hasWeatherData(): boolean {
+    if (this.snapshots.length < 10) return false;
+    const first = this.snapshots[0].ambientTemp;
+    return this.snapshots.some(s => Math.abs(s.ambientTemp - first) > 2);
   }
 
   // ── Helpers ──────────────────────────────────────────────────────

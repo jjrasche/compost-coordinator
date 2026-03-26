@@ -138,6 +138,106 @@ console.log('\nZero gate = zero cooling:');
   assert(isFinite(maxCooling), `No NaN/Infinity with zero gate: max=${maxCooling}`);
 }
 
+// --- Test 4: Membrane retention reduces net moisture loss ---
+console.log('\nMembrane retention:');
+{
+  const configNoRetention = createDefaultConfig();
+  configNoRetention.boundaries.ambientTemp = 85;
+  configNoRetention.boundaries.ambientRH = 0.50;
+  configNoRetention.boundaries.coverType = 'none';
+  configNoRetention.boundaries.membraneRetention = 0;
+
+  const configWithRetention = createDefaultConfig();
+  configWithRetention.boundaries.ambientTemp = 85;
+  configWithRetention.boundaries.ambientRH = 0.50;
+  configWithRetention.boundaries.coverType = 'eptfe';
+  configWithRetention.boundaries.membraneRetention = 0.75;
+
+  // Run both with identical grids
+  const gridA = new CompostGrid(configNoRetention);
+  initializeGrid(gridA, configNoRetention);
+  const gridB = new CompostGrid(configWithRetention);
+  initializeGrid(gridB, configWithRetention);
+
+  for (let i = 0; i < gridA.totalCells; i++) {
+    if (gridA.material[i] === MATERIAL_CODES.compost) {
+      gridA.temp[i] = 140;
+      gridA.moisture[i] = 0.55;
+      gridB.temp[i] = 140;
+      gridB.moisture[i] = 0.55;
+    }
+  }
+
+  const resultA = computeFanCooling(gridA, configNoRetention);
+  const resultB = computeFanCooling(gridB, configWithRetention);
+
+  let totalRemovalA = 0;
+  let totalRemovalB = 0;
+  for (let i = 0; i < gridA.totalCells; i++) {
+    if (gridA.material[i] === MATERIAL_CODES.compost) {
+      totalRemovalA += resultA.moistureRemoval[i];
+      totalRemovalB += resultB.moistureRemoval[i];
+    }
+  }
+
+  assert(totalRemovalA > 0, `No-retention has positive moisture removal: ${totalRemovalA.toFixed(4)}`);
+  assert(totalRemovalB > 0, `With-retention has positive moisture removal: ${totalRemovalB.toFixed(4)}`);
+  assert(totalRemovalB < totalRemovalA,
+    `Retention reduces moisture loss: ${totalRemovalB.toFixed(4)} < ${totalRemovalA.toFixed(4)}`);
+
+  // 75% retention should reduce net loss by roughly 40-75% (not exactly 75% because
+  // retention only applies to evaporation, not condensation in upper layers)
+  const reductionFrac = 1 - totalRemovalB / totalRemovalA;
+  assertRange(reductionFrac, 0.20, 0.80,
+    `Retention reduces loss by ${(reductionFrac * 100).toFixed(0)}% (expect 20-80%)`);
+}
+
+// --- Test 5: Retention returns latent heat to top cell ---
+console.log('\nRetention latent heat return:');
+{
+  const configNoRetention = createDefaultConfig();
+  configNoRetention.boundaries.ambientTemp = 85;
+  configNoRetention.boundaries.ambientRH = 0.50;
+  configNoRetention.boundaries.membraneRetention = 0;
+
+  const configWithRetention = createDefaultConfig();
+  configWithRetention.boundaries.ambientTemp = 85;
+  configWithRetention.boundaries.ambientRH = 0.50;
+  configWithRetention.boundaries.membraneRetention = 0.75;
+
+  const gridA = new CompostGrid(configNoRetention);
+  initializeGrid(gridA, configNoRetention);
+  const gridB = new CompostGrid(configWithRetention);
+  initializeGrid(gridB, configWithRetention);
+
+  for (let i = 0; i < gridA.totalCells; i++) {
+    if (gridA.material[i] === MATERIAL_CODES.compost) {
+      gridA.temp[i] = 140;
+      gridA.moisture[i] = 0.55;
+      gridB.temp[i] = 140;
+      gridB.moisture[i] = 0.55;
+    }
+  }
+
+  const resultA = computeFanCooling(gridA, configNoRetention);
+  const resultB = computeFanCooling(gridB, configWithRetention);
+
+  // Find the topmost compost cell in a center column
+  const midX = Math.floor(gridA.nx / 2);
+  const midZ = Math.floor(gridA.nz / 2);
+  let topIdx = -1;
+  for (let y = gridA.ny - 1; y >= 0; y--) {
+    const i = gridA.idx(midX, y, midZ);
+    if (gridA.material[i] === MATERIAL_CODES.compost) { topIdx = i; break; }
+  }
+
+  if (topIdx >= 0) {
+    // Top cell with retention should have LESS cooling (latent heat returned)
+    assert(resultB.cooling[topIdx] < resultA.cooling[topIdx],
+      `Top cell cooling reduced by retention: ${resultB.cooling[topIdx].toFixed(4)} < ${resultA.cooling[topIdx].toFixed(4)}`);
+  }
+}
+
 // --- Summary ---
 console.log(`\n=== Results: ${passed} passed, ${failed} failed ===`);
 if (failed > 0) process.exit(1);

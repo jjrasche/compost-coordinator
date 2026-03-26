@@ -13,7 +13,7 @@
 
 import { CompostGrid, MATERIAL_FROM_CODE, MATERIAL_CODES, isWithinRepose } from '../types/CompostGrid';
 import type { SimulationConfig } from '../types/SimulationConfig';
-import { computeHeatGeneration } from './bioActivity';
+import { computeHeatGeneration, tempActivityFactor, moistureActivityFactor, oxygenActivityFactor, ageActivityFactor } from './bioActivity';
 import { stepHeat } from './heatDiffusion';
 import { solveOxygenSteadyState } from './oxygenSolver';
 import { computeFanCooling, isFanOn } from './fanConvection';
@@ -33,6 +33,10 @@ export interface StepSnapshot {
   weightLbs: number;
   /** Pile volume in cubic feet */
   volumeFt3: number;
+  /** Volume-weighted average biological activity (0-1 product of all four factors) */
+  avgBioActivity: number;
+  /** Ambient temperature at this timestep (for weather overlay on chart) */
+  ambientTemp: number;
 }
 
 /**
@@ -112,6 +116,7 @@ function collectSnapshot(
   let sumTemp = 0;
   let sumO2 = 0;
   let sumMoisture = 0;
+  let sumBioActivity = 0;
   let totalHeatGen = 0;
   let compostCells = 0;
 
@@ -128,6 +133,10 @@ function collectSnapshot(
         sumTemp += T;
         sumO2 += grid.oxygen[i];
         sumMoisture += grid.moisture[i];
+        sumBioActivity += tempActivityFactor(T)
+          * moistureActivityFactor(grid.moisture[i])
+          * oxygenActivityFactor(grid.oxygen[i])
+          * ageActivityFactor(grid.materialAge[i]);
         totalHeatGen += heatSource[i] * cellVolFt3;
 
         if (T > coreTemp) coreTemp = T;
@@ -157,6 +166,8 @@ function collectSnapshot(
     fanOn,
     weightLbs,
     volumeFt3,
+    avgBioActivity: compostCells > 0 ? sumBioActivity / compostCells : 0,
+    ambientTemp: config.boundaries.ambientTemp,
   };
 }
 

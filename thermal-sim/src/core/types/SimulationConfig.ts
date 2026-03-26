@@ -46,15 +46,42 @@ export interface AerationConfig {
   holesPerRing: number;
 }
 
-/** Cover product presets with moisture retention fractions */
+/**
+ * Cover product presets with moisture retention and thermal R-values.
+ *
+ * R-value physics (ft²·hr·°F/BTU):
+ * - None: still air film only → R-0.17 (ASHRAE interior air film)
+ * - Fleece: single layer nonwoven + air films → R-0.5
+ * - ePTFE: membrane + trapped dead air layer → R-0.75
+ * - Tarp: impermeable plastic + dead air pocket underneath → R-2.0
+ */
 export const COVER_PRESETS = {
-  none:   { label: 'None (open air)',        retention: 0.00 },
-  fleece: { label: 'Fleece (~$2/m\u00B2)',   retention: 0.10 },
-  eptfe:  { label: 'ePTFE membrane (~$8/m\u00B2)', retention: 0.75 },
-  tarp:   { label: 'Tarp (impermeable)',     retention: 1.00 },
+  none:   { label: 'None (open air)',              retention: 0.00, rValue: 0.17 },
+  fleece: { label: 'Fleece (~$2/m\u00B2)',         retention: 0.10, rValue: 0.50 },
+  eptfe:  { label: 'ePTFE membrane (~$8/m\u00B2)', retention: 0.75, rValue: 0.75 },
+  tarp:   { label: 'Tarp (impermeable)',           retention: 1.00, rValue: 2.00 },
 } as const;
 
 export type CoverType = keyof typeof COVER_PRESETS;
+
+/**
+ * Side insulation presets with R-values.
+ *
+ * Physics:
+ * - None: membrane + still air only → R-0.5
+ * - Logs: 6" diameter logs stacked horizontally → 6"/12 / 0.08 k_wood = R-6.25 + air film
+ * - Logs + blanket: logs + insulating blanket + dead air gap → R-8 to R-10
+ * - Straw bales: 18" deep straw, k_straw ≈ 0.025 → 1.5ft / 0.025 = R-60 (per ft²·hr·°F/BTU)
+ *   but straw has convective bypass → effective R ≈ R-6
+ */
+export const INSULATION_PRESETS = {
+  none:           { label: 'None (membrane only)',     rValue: 0.5 },
+  logs:           { label: 'Log cabin shell',          rValue: 6.25 },
+  logs_blanket:   { label: 'Logs + insulation blanket', rValue: 9.0 },
+  strawbales:     { label: 'Straw bales',              rValue: 6.0 },
+} as const;
+
+export type InsulationType = keyof typeof INSULATION_PRESETS;
 
 export interface BoundaryConfig {
   /** Ambient air temperature F */
@@ -70,10 +97,8 @@ export interface BoundaryConfig {
   membraneRetention: number;
   /** Log diameter in inches (logs are external, lying on side for edge seal) */
   logDiameter: number;
-  /** Whether straw bale insulation is present */
-  hasStraw: boolean;
-  /** Straw bale thickness in inches */
-  strawThickness: number;
+  /** Side insulation type — determines side R-value */
+  sideInsulation: InsulationType;
   /** Wind speed mph (affects convective loss at membrane surface) */
   windSpeed: number;
 }
@@ -117,8 +142,7 @@ export function createDefaultConfig(): SimulationConfig {
       coverType: 'eptfe' as CoverType,
       membraneRetention: COVER_PRESETS.eptfe.retention,
       logDiameter: 6, // logs lie on side outside pile for edge seal
-      hasStraw: false,
-      strawThickness: 18,
+      sideInsulation: 'none' as InsulationType,
       windSpeed: 5,
     },
     time: {

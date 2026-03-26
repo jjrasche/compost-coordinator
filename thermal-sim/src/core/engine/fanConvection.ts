@@ -102,6 +102,7 @@ interface ColumnParams {
   cellVolFt3: number;
   waterPerCellLb: number;
   criticalMoisture: number;
+  membraneRetention: number;
 }
 
 // --- Orchestrator ---
@@ -164,6 +165,7 @@ function buildColumnParams(grid: CompostGrid, config: SimulationConfig): ColumnP
     cellVolFt3,
     waterPerCellLb: WATER_AT_FC_LB_PER_FT3 * cellVolFt3,
     criticalMoisture: config.pile.criticalMoisture,
+    membraneRetention: config.boundaries.membraneRetention,
   };
 }
 
@@ -195,7 +197,9 @@ function buildAmbientAirState(config: SimulationConfig): AirState {
   };
 }
 
-/** Sweep all (x,z) columns upward, accumulating cooling and moisture removal. */
+/** Sweep all (x,z) columns upward, accumulating cooling and moisture removal.
+ *  Membrane retention: fraction of evaporated moisture that condenses on the cover
+ *  and drips back to the top compost cell. Reduces net moisture loss. */
 function sweepAllColumns(
   grid: CompostGrid,
   params: ColumnParams,
@@ -206,10 +210,13 @@ function sweepAllColumns(
   moistureRemoval: Float32Array,
 ): void {
   const { nx, ny, nz } = grid;
+  const retention = params.membraneRetention;
 
   for (let z = 0; z < nz; z++) {
     for (let x = 0; x < nx; x++) {
       let air: AirState = { ...ambientAir };
+      let columnEvapTotal = 0;
+      let topCompostIdx = -1;
 
       for (let y = plenumCellsY; y < ny; y++) {
         const i = grid.idx(x, y, z);
@@ -222,6 +229,24 @@ function sweepAllColumns(
         cooling[i] = result.coolingFPerHr * dutyCycle;
         moistureRemoval[i] = result.moistureRemovalFCPerHr * dutyCycle;
         air = result.exitAir;
+
+        // Track net evaporation for membrane retention
+        if (result.moistureRemovalFCPerHr > 0) {
+          columnEvapTotal += result.moistureRemovalFCPerHr * dutyCycle;
+        }
+        topCompostIdx = i;
+      }
+
+      // Membrane retention: condensate drips back to top cell.
+      // Returns both moisture AND latent heat (condensation releases energy).
+      if (retention > 0 && columnEvapTotal > 0 && topCompostIdx >= 0) {
+        const retainedFCHr = columnEvapTotal * retention;
+        moistureRemoval[topCompostIdx] -= retainedFCHr;
+
+        // Latent heat credit: condensation warms the top cell
+        const retainedWaterLbHr = retainedFCHr * params.waterPerCellLb;
+        const latentReturnBtuHr = retainedWaterLbHr * H_FG_BTU_PER_LB;
+        cooling[topCompostIdx] -= latentReturnBtuHr / (params.cellVolFt3 * RHO_C_COMPOST);
       }
     }
   }

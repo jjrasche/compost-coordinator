@@ -593,6 +593,7 @@ function bindControls(): void {
       weatherSchedule = null;
       weatherStatusEl.textContent = 'Manual';
       startDateRow.style.display = 'none';
+      chart.setStartDate(null);
       scheduleRecompute();
       return;
     }
@@ -617,6 +618,7 @@ function bindControls(): void {
       const dayCount = weatherSchedule.days.length;
       weatherStatusEl.textContent = `${dayCount} days loaded`;
       weatherStatusEl.style.color = '#6b6';
+      chart.setStartDate(startDate);
       scheduleRecompute();
     } catch (err) {
       weatherStatusEl.textContent = `Error: ${(err as Error).message.slice(0, 30)}`;

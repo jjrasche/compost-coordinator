@@ -67,6 +67,7 @@
 
   /* Select styling shared */
   .sidebar select { font-size: 0.72rem; background: #2a2a3e; color: #ddd; border: 1px solid #555; border-radius: 3px; padding: 2px; }
+  .section-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em; color: #555; border-top: 1px solid #333; padding-top: 6px; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -84,6 +85,9 @@
   <div id="scene-container"></div>
 
   <div class="sidebar">
+    <!-- INPUTS -->
+    <div class="section-label">Inputs</div>
+
     <div class="panel">
       <h3>Environment</h3>
       <div class="row">
@@ -95,11 +99,6 @@
         <label>Humidity</label>
         <input type="range" id="humiditySlider" min="10" max="100" step="5" value="50">
         <span class="value" id="humidityVal">50%</span>
-      </div>
-      <div class="row">
-        <label>Blast gate</label>
-        <input type="range" id="gateSlider" min="5" max="100" step="5" value="20">
-        <span class="value" id="gateVal">20%</span>
       </div>
       <div class="row">
         <label>Duration</label>
@@ -165,6 +164,11 @@
         <span class="value" id="fanConcern" style="font-size:0.65rem;color:#666;min-width:60px;">--</span>
       </div>
       <div class="row">
+        <label>Blast gate</label>
+        <input type="range" id="gateSlider" min="5" max="100" step="5" value="20">
+        <span class="value" id="gateVal">20%</span>
+      </div>
+      <div class="row">
         <label>Fan on</label>
         <input type="range" id="fanOnSlider" min="5" max="120" step="5" value="90">
         <span class="value" id="fanOnVal">90s</span>
@@ -191,6 +195,23 @@
       </div>
     </div>
 
+    <!-- OUTPUTS -->
+    <div class="section-label">Outputs</div>
+
+    <div class="panel">
+      <h3>Dashboard</h3>
+      <div id="status">Ready</div>
+      <div class="stat"><span class="label">Core temp</span><span class="val" id="coreTemp">--</span></div>
+      <div class="stat"><span class="label">Surface temp</span><span class="val" id="surfTemp">--</span></div>
+      <div class="stat"><span class="label">Avg temp</span><span class="val" id="avgTemp">--</span></div>
+      <div class="stat"><span class="label">Heat gen</span><span class="val" id="heatGen">--</span></div>
+      <div class="stat"><span class="label">Avg O₂</span><span class="val" id="avgO2">--</span></div>
+      <div class="stat"><span class="label">Avg moisture</span><span class="val" id="avgMoist">--</span></div>
+      <div class="stat"><span class="label">Bio activity</span><span class="val" id="bioActivity" style="color:#6c4">--</span></div>
+      <div class="stat"><span class="label">Pile weight</span><span class="val" id="pileWeight">--</span></div>
+      <div class="stat"><span class="label">Pile volume</span><span class="val" id="pileVol">--</span></div>
+    </div>
+
     <div class="panel">
       <h3>Material Cycle</h3>
       <div class="stat"><span class="label">Week</span><span class="val" id="weekNum">0</span></div>
@@ -199,6 +220,9 @@
       <div class="stat"><span class="label">Last transfer</span><span class="val" id="lastTransfer">--</span></div>
       <p style="font-size:0.68rem;color:#666;margin-top:4px;">120 gal added weekly. Stage cleared monthly.</p>
     </div>
+
+    <!-- VIEW CONTROLS -->
+    <div class="section-label">View</div>
 
     <div class="panel">
       <h3>Visualization</h3>
@@ -231,20 +255,6 @@
         <div class="legend-item" style="background:#ff8c28;color:#000">131</div>
         <div class="legend-item" style="background:#db3d28;color:#fff">160+</div>
       </div>
-    </div>
-
-    <div class="panel">
-      <h3>Dashboard</h3>
-      <div id="status">Ready</div>
-      <div class="stat"><span class="label">Core temp</span><span class="val" id="coreTemp">--</span></div>
-      <div class="stat"><span class="label">Surface temp</span><span class="val" id="surfTemp">--</span></div>
-      <div class="stat"><span class="label">Avg temp</span><span class="val" id="avgTemp">--</span></div>
-      <div class="stat"><span class="label">Heat gen</span><span class="val" id="heatGen">--</span></div>
-      <div class="stat"><span class="label">Avg O₂</span><span class="val" id="avgO2">--</span></div>
-      <div class="stat"><span class="label">Avg moisture</span><span class="val" id="avgMoist">--</span></div>
-      <div class="stat"><span class="label">Bio activity</span><span class="val" id="bioActivity" style="color:#6c4">--</span></div>
-      <div class="stat"><span class="label">Pile weight</span><span class="val" id="pileWeight">--</span></div>
-      <div class="stat"><span class="label">Pile volume</span><span class="val" id="pileVol">--</span></div>
     </div>
 
     <div class="panel">

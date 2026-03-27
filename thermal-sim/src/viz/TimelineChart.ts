@@ -46,6 +46,7 @@ const COLORS = {
 
 const THERMO_MIN = 131;
 const THERMO_MAX = 160;
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export class TimelineChart {
   private canvas: HTMLCanvasElement;
@@ -55,6 +56,7 @@ export class TimelineChart {
   private maxHours = 24 * 56; // 8 weeks default view
   private currentTimeHours = 0;
   private containerWidth = 0;
+  private simStartDate: Date | null = null;
 
   /** Callback when user clicks/drags on the chart to seek to a time */
   onSeek: ((timeHours: number) => void) | null = null;
@@ -161,6 +163,11 @@ export class TimelineChart {
     return nearest;
   }
 
+  /** Set the simulation start date for calendar month labels on x-axis. */
+  setStartDate(date: Date | null): void {
+    this.simStartDate = date;
+  }
+
   /** Clear all recorded data */
   reset(): void {
     this.snapshots = [];
@@ -251,14 +258,7 @@ export class TimelineChart {
     ctx.textAlign = 'center';
     const useMonths = maxHours > 24 * 120; // >4 months: show months
     if (useMonths) {
-      for (let month = 0; month <= maxHours / (24 * 30); month++) {
-        const x = xScale(month * 24 * 30);
-        if (x > ox + plotW) break;
-        ctx.fillStyle = '#333';
-        ctx.fillRect(x, oy, 0.5, plotH);
-        ctx.fillStyle = COLORS.gridText;
-        ctx.fillText('M' + month, x, oy + plotH + 12);
-      }
+      this.drawMonthLabels(ctx, xScale, ox, oy, plotW, plotH, maxHours);
     } else {
       for (let week = 0; week <= maxHours / 168; week++) {
         const x = xScale(week * 168);
@@ -491,6 +491,43 @@ export class TimelineChart {
 
     ctx.closePath();
     ctx.fill();
+  }
+
+  private drawMonthLabels(
+    ctx: CanvasRenderingContext2D,
+    xScale: (h: number) => number,
+    ox: number, oy: number, plotW: number, plotH: number,
+    maxHours: number,
+  ): void {
+    if (this.simStartDate) {
+      // Calendar-aligned month boundaries
+      const start = new Date(this.simStartDate);
+      const endMs = start.getTime() + maxHours * 3600_000;
+      let cursor = new Date(start.getFullYear(), start.getMonth() + 1, 1); // first month boundary
+
+      while (cursor.getTime() <= endMs) {
+        const hoursFromStart = (cursor.getTime() - start.getTime()) / 3600_000;
+        const x = xScale(hoursFromStart);
+        if (x > ox + plotW) break;
+
+        ctx.fillStyle = '#333';
+        ctx.fillRect(x, oy, 0.5, plotH);
+        ctx.fillStyle = COLORS.gridText;
+        ctx.fillText(MONTH_NAMES[cursor.getMonth()], x, oy + plotH + 12);
+
+        cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+      }
+    } else {
+      // Fixed 30-day months (no start date)
+      for (let month = 0; month <= maxHours / (24 * 30); month++) {
+        const x = xScale(month * 24 * 30);
+        if (x > ox + plotW) break;
+        ctx.fillStyle = '#333';
+        ctx.fillRect(x, oy, 0.5, plotH);
+        ctx.fillStyle = COLORS.gridText;
+        ctx.fillText('M' + month, x, oy + plotH + 12);
+      }
+    }
   }
 
   private drawWeightArea(

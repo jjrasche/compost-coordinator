@@ -78,6 +78,7 @@ let isComputing = false;
 // Weather
 let weatherSchedule: WeatherSchedule | null = null;
 let weatherMode: 'manual' | string = 'manual';
+let simStartDate: Date | null = null;
 
 // Fan mode
 let fanMode: 'manual' | 'auto' = 'manual';
@@ -349,8 +350,10 @@ function scrubTo(timeHours: number): void {
   // Update 3D scene
   scene.updateFromGrid(grid, config, nearest.snapshot.fanOn, nearest.timeHours);
 
-  // Update dashboard
+  // Update dashboard + scrub date
   updateDashboard(nearest.snapshot);
+  const scrubDateEl = document.getElementById('scrubDate');
+  if (scrubDateEl) scrubDateEl.textContent = formatSimDate(nearest.timeHours);
 }
 
 // --- Playback animation ---
@@ -389,12 +392,23 @@ function stopPlayback(): void {
 }
 
 function updatePlayButton(): void {
-  const btn = document.getElementById('playBtn')!;
+  const btn = document.getElementById('playBtn');
+  if (!btn) return;
   btn.textContent = playing ? '\u23f8 Pause' : '\u25b6 Play';
   (btn as HTMLButtonElement).disabled = isComputing || gridCheckpoints.length === 0;
 }
 
 // --- Dashboard ---
+
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatSimDate(timeHours: number): string {
+  if (simStartDate) {
+    const d = new Date(simStartDate.getTime() + timeHours * 3600_000);
+    return `${SHORT_MONTHS[d.getMonth()]} ${d.getDate()}`;
+  }
+  return `Day ${(timeHours / 24).toFixed(0)}`;
+}
 
 function colorForTemp(tempF: number): string {
   if (tempF >= 160) return '#d42';     // overheating — red
@@ -449,8 +463,7 @@ function updateDashboard(snap: StepSnapshot | null): void {
     return;
   }
 
-  const days = snap.timeHours / 24;
-  dayEl.textContent = days.toFixed(1);
+  dayEl.textContent = formatSimDate(snap.timeHours);
   coreEl.textContent = snap.coreTemp.toFixed(0) + '°F';
   coreEl.style.color = colorForTemp(snap.coreTemp);
   surfEl.textContent = snap.surfaceTemp.toFixed(0) + '°F';
@@ -531,6 +544,7 @@ async function loadWeatherSource(): Promise<void> {
 
   if (source === 'manual') {
     weatherSchedule = null;
+    simStartDate = null;
     weatherStatusEl.textContent = 'Manual';
     startDateRow.style.display = 'none';
     chart.setStartDate(null);
@@ -558,6 +572,7 @@ async function loadWeatherSource(): Promise<void> {
     const dayCount = weatherSchedule.days.length;
     weatherStatusEl.textContent = `${dayCount} days loaded`;
     weatherStatusEl.style.color = '#6b6';
+    simStartDate = startDate;
     chart.setStartDate(startDate);
     scheduleRecompute();
   } catch (err) {
@@ -565,22 +580,27 @@ async function loadWeatherSource(): Promise<void> {
     weatherStatusEl.style.color = '#d42';
     weatherSchedule = null;
     weatherMode = 'manual';
+    scheduleRecompute();
   }
 }
 
 function bindControls(): void {
-  // Playback
-  const playBtn = document.getElementById('playBtn')!;
-  playBtn.addEventListener('click', () => {
-    if (playing) stopPlayback();
-    else startPlayback();
-  });
+  // Playback button (optional — may be removed from HTML)
+  const playBtn = document.getElementById('playBtn');
+  if (playBtn) {
+    playBtn.addEventListener('click', () => {
+      if (playing) stopPlayback();
+      else startPlayback();
+    });
+  }
 
-  const speedSlider = document.getElementById('playbackSpeed') as HTMLInputElement;
-  speedSlider.addEventListener('input', () => {
-    playbackSpeed = parseInt(speedSlider.value);
-    document.getElementById('playbackSpeedVal')!.textContent = playbackSpeed + 'x';
-  });
+  const speedSlider = document.getElementById('playbackSpeed') as HTMLInputElement | null;
+  if (speedSlider) {
+    speedSlider.addEventListener('input', () => {
+      playbackSpeed = parseInt(speedSlider.value);
+      document.getElementById('playbackSpeedVal')!.textContent = playbackSpeed + 'x';
+    });
+  }
 
   // Config sliders — all trigger recompute on mouseup
   const recomputeSliderIds = ['ambientSlider', 'humiditySlider', 'gateSlider',

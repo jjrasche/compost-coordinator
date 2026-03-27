@@ -88,8 +88,7 @@
   <div class="header">
     <h1>Mini-CASP Thermal Sim</h1>
     <div class="controls">
-      <span style="font-size:0.78rem;color:#888;">Day:</span>
-      <span id="simDay" style="font-size:0.85rem;font-weight:bold;">0</span>
+      <span id="simDay" style="font-size:0.85rem;font-weight:bold;"></span>
       <span id="simStatus" style="font-size:0.72rem;color:#5a8abe;margin-left:8px;"></span>
     </div>
   </div>
@@ -299,10 +298,7 @@
   <div class="chart-panel" id="chartPanel">
     <div class="playback-row">
       <span class="chart-toggle" id="chartToggle">Chart</span>
-      <button class="btn" id="playBtn" style="padding:2px 10px;font-size:0.72rem;">&#9654; Play</button>
-      <label>Speed:</label>
-      <input type="range" id="playbackSpeed" min="1" max="200" value="50" style="width:60px;">
-      <span class="value" id="playbackSpeedVal">50x</span>
+      <span id="scrubDate" style="font-size:0.72rem;color:#aaa;margin-left:auto;"></span>
     </div>
     <div class="sim-progress">
       <div class="sim-progress-bar" id="simProgressBar"></div>

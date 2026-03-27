@@ -396,6 +396,33 @@ function updatePlayButton(): void {
 
 // --- Dashboard ---
 
+function colorForTemp(tempF: number): string {
+  if (tempF >= 160) return '#d42';     // overheating — red
+  if (tempF >= 131) return '#6b6';     // thermophilic — green
+  if (tempF >= 100) return '#fc0';     // mesophilic — yellow
+  if (tempF >= 40) return '#6be';      // psychrophilic — blue
+  return '#48c';                        // frozen — deep blue
+}
+
+function colorForOxygen(o2Fraction: number): string {
+  if (o2Fraction < 0.05) return '#d42'; // anaerobic risk — red
+  if (o2Fraction < 0.10) return '#fc0'; // low — yellow
+  return '#6b6';                         // healthy — green
+}
+
+function colorForMoisture(moistFraction: number): string {
+  if (moistFraction < 0.30) return '#d42'; // too dry — red
+  if (moistFraction > 0.70) return '#d42'; // waterlogged — red
+  if (moistFraction < 0.40 || moistFraction > 0.65) return '#fc0'; // marginal — yellow
+  return '#6b6';                            // ideal 40-65% — green
+}
+
+function colorForBioActivity(activity: number): string {
+  if (activity > 0.3) return '#6c4';  // active — green
+  if (activity > 0.1) return '#fc0';  // low — yellow
+  return '#888';                       // dormant — grey
+}
+
 function updateDashboard(snap: StepSnapshot | null): void {
   const dayEl = document.getElementById('simDay')!;
   const coreEl = document.getElementById('coreTemp')!;
@@ -407,9 +434,6 @@ function updateDashboard(snap: StepSnapshot | null): void {
   const statusEl = document.getElementById('status')!;
   const weekEl = document.getElementById('weekNum')!;
   const monthEl = document.getElementById('monthNum')!;
-  const lastAddEl = document.getElementById('lastAdd')!;
-  const lastTransEl = document.getElementById('lastTransfer')!;
-
   if (!snap) {
     dayEl.textContent = '0';
     coreEl.textContent = '--';
@@ -422,20 +446,23 @@ function updateDashboard(snap: StepSnapshot | null): void {
     statusEl.textContent = 'Ready';
     weekEl.textContent = '0';
     monthEl.textContent = '0';
-    lastAddEl.textContent = '--';
-    lastTransEl.textContent = '--';
     return;
   }
 
   const days = snap.timeHours / 24;
   dayEl.textContent = days.toFixed(1);
   coreEl.textContent = snap.coreTemp.toFixed(0) + '°F';
+  coreEl.style.color = colorForTemp(snap.coreTemp);
   surfEl.textContent = snap.surfaceTemp.toFixed(0) + '°F';
   avgEl.textContent = snap.avgTemp.toFixed(0) + '°F';
   heatEl.textContent = snap.totalHeatGen.toFixed(0) + ' BTU/hr';
   o2El.textContent = (snap.avgOxygen * 100).toFixed(1) + '%';
+  o2El.style.color = colorForOxygen(snap.avgOxygen);
   moistEl.textContent = (snap.avgMoisture * 100).toFixed(0) + '% FC';
-  document.getElementById('bioActivity')!.textContent = (snap.avgBioActivity * 100).toFixed(0) + '%';
+  moistEl.style.color = colorForMoisture(snap.avgMoisture);
+  const bioEl = document.getElementById('bioActivity')!;
+  bioEl.textContent = (snap.avgBioActivity * 100).toFixed(0) + '%';
+  bioEl.style.color = colorForBioActivity(snap.avgBioActivity);
 
   const weightEl = document.getElementById('pileWeight')!;
   const volEl = document.getElementById('pileVol')!;
@@ -447,12 +474,6 @@ function updateDashboard(snap: StepSnapshot | null): void {
   const currentMonth = Math.floor(snap.timeHours / (HOURS_PER_WEEK * WEEKS_PER_MONTH));
   weekEl.textContent = currentWeek.toString();
   monthEl.textContent = currentMonth.toString();
-
-  // Derive last add/transfer from time position
-  const lastAddWeek = currentWeek > 0 ? currentWeek : 0;
-  const lastTransMonth = currentMonth > 0 ? currentMonth : -1;
-  lastAddEl.textContent = lastAddWeek >= 0 ? `Day ${(lastAddWeek * 7).toFixed(0)}` : '--';
-  lastTransEl.textContent = lastTransMonth >= 0 ? `Day ${(lastTransMonth * 28).toFixed(0)}` : '--';
 
   if (snap.coreTemp >= 160) {
     statusEl.textContent = 'OVERHEATING';
@@ -840,6 +861,24 @@ function formatSeasonalTable(strategies: SeasonalStrategy[]): string {
 }
 
 // --- Boot ---
+/** Wire up collapsible panel headers and chart toggle. */
+function bindCollapsePanels(): void {
+  for (const panel of document.querySelectorAll('.panel')) {
+    const header = panel.querySelector('h3');
+    if (!header) continue;
+    header.addEventListener('click', () => panel.classList.toggle('collapsed'));
+  }
+
+  const chartToggle = document.getElementById('chartToggle')!;
+  const app = document.querySelector('.app')!;
+  chartToggle.addEventListener('click', () => {
+    chartToggle.classList.toggle('collapsed');
+    app.classList.toggle('chart-collapsed');
+    // Trigger chart resize after layout change
+    window.dispatchEvent(new Event('resize'));
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const sceneContainer = document.getElementById('scene-container')!;
   const chartContainer = document.getElementById('chart-container')!;
@@ -858,6 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   bindControls();
+  bindCollapsePanels();
   applyUIToConfig();
   updateDashboard(null);
   scene.updateFromGrid(grid, config, false, 0);

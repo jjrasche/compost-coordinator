@@ -51,6 +51,8 @@ export interface StepSnapshot {
   avgBioActivity: number;
   /** Ambient temperature at this timestep (for weather overlay on chart) */
   ambientTemp: number;
+  /** Fan duty cycle 0-1: onSeconds / (onSeconds + offSeconds) */
+  dutyCycle: number;
 }
 
 /**
@@ -188,6 +190,7 @@ export function collectSnapshot(
     volumeFt3,
     avgBioActivity: compostCells > 0 ? sumBioActivity / compostCells : 0,
     ambientTemp: config.boundaries.ambientTemp,
+    dutyCycle: config.aeration.onSeconds / (config.aeration.onSeconds + config.aeration.offSeconds),
   };
 }
 

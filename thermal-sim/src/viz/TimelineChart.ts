@@ -42,6 +42,7 @@ const COLORS = {
   moistLine: '#44aa88',
   bioLine: '#66cc44',
   ambientLine: 'rgba(180, 180, 220, 0.4)',
+  fanFill: 'rgba(200, 160, 60, 0.15)',
 };
 
 const THERMO_MIN = 131;
@@ -353,6 +354,20 @@ export class TimelineChart {
     ctx.fillStyle = '#181828';
     ctx.fillRect(ox, oy, plotW, ch);
 
+    // Fan duty cycle filled area (behind everything — shows fan effort)
+    if (this.snapshots.length > 1 && this.snapshots[0].dutyCycle !== undefined) {
+      ctx.beginPath();
+      ctx.moveTo(xScale(this.snapshots[0].timeHours), yScale(0));
+      for (let i = 0; i < this.snapshots.length; i++) {
+        const s = this.snapshots[i];
+        ctx.lineTo(xScale(s.timeHours), yScale(s.dutyCycle));
+      }
+      ctx.lineTo(xScale(this.snapshots[this.snapshots.length - 1].timeHours), yScale(0));
+      ctx.closePath();
+      ctx.fillStyle = COLORS.fanFill;
+      ctx.fill();
+    }
+
     // 5% O2 reference (below this, activity crashes)
     ctx.strokeStyle = '#442222';
     ctx.lineWidth = 0.5;
@@ -370,6 +385,11 @@ export class TimelineChart {
     ctx.fillText('21%', ox - 4, yScale(1) + 3);
     ctx.fillText('10%', ox - 4, yScale(0.5) + 3);
     ctx.fillText('0%', ox - 4, yScale(0) + 3);
+
+    // Right Y axis — fan duty cycle
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#665520';
+    ctx.fillText('Fan', ox + plotW + 3, yScale(0.5) + 3);
 
     // O2 line (scaled: 0-21% maps to 0-1)
     ctx.beginPath();

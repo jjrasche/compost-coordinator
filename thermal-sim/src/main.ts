@@ -519,6 +519,55 @@ function applyUIToConfig(): void {
   config.pile.plenumHeight = config.aeration.pipeDiameter + 0.5;
 }
 
+/** Load weather data from the selected source and trigger recompute. */
+async function loadWeatherSource(): Promise<void> {
+  const weatherSelect = document.getElementById('weatherSource') as HTMLSelectElement;
+  const startDateRow = document.getElementById('startDateRow')!;
+  const startDateInput = document.getElementById('startDate') as HTMLInputElement;
+  const weatherStatusEl = document.getElementById('weatherStatus')!;
+
+  const source = weatherSelect.value;
+  weatherMode = source;
+
+  if (source === 'manual') {
+    weatherSchedule = null;
+    weatherStatusEl.textContent = 'Manual';
+    startDateRow.style.display = 'none';
+    chart.setStartDate(null);
+    scheduleRecompute();
+    return;
+  }
+
+  startDateRow.style.display = 'flex';
+  const startDate = new Date(startDateInput.value + 'T00:00:00');
+  const durationDays = parseInt((document.getElementById('durationSelect') as HTMLSelectElement).value);
+
+  weatherStatusEl.textContent = 'Loading...';
+  weatherStatusEl.style.color = '#fc0';
+
+  try {
+    if (source === 'average') {
+      weatherSchedule = await fetchNormalsSchedule(startDate, durationDays);
+    } else {
+      const year = parseInt(source);
+      const yearStart = new Date(year, startDate.getMonth(), startDate.getDate());
+      weatherSchedule = await fetchSeasonSchedule(yearStart, durationDays);
+      weatherSchedule.startDate = yearStart;
+    }
+
+    const dayCount = weatherSchedule.days.length;
+    weatherStatusEl.textContent = `${dayCount} days loaded`;
+    weatherStatusEl.style.color = '#6b6';
+    chart.setStartDate(startDate);
+    scheduleRecompute();
+  } catch (err) {
+    weatherStatusEl.textContent = `Error: ${(err as Error).message.slice(0, 30)}`;
+    weatherStatusEl.style.color = '#d42';
+    weatherSchedule = null;
+    weatherMode = 'manual';
+  }
+}
+
 function bindControls(): void {
   // Playback
   const playBtn = document.getElementById('playBtn')!;
@@ -597,57 +646,12 @@ function bindControls(): void {
 
   // Weather source selector
   const weatherSelect = document.getElementById('weatherSource') as HTMLSelectElement;
-  const startDateRow = document.getElementById('startDateRow')!;
   const startDateInput = document.getElementById('startDate') as HTMLInputElement;
-  const weatherStatusEl = document.getElementById('weatherStatus')!;
 
   weatherSelect.addEventListener('change', () => loadWeatherSource());
   startDateInput.addEventListener('change', () => {
     if (weatherMode !== 'manual') loadWeatherSource();
   });
-
-  async function loadWeatherSource(): Promise<void> {
-    const source = weatherSelect.value;
-    weatherMode = source;
-
-    if (source === 'manual') {
-      weatherSchedule = null;
-      weatherStatusEl.textContent = 'Manual';
-      startDateRow.style.display = 'none';
-      chart.setStartDate(null);
-      scheduleRecompute();
-      return;
-    }
-
-    startDateRow.style.display = 'flex';
-    const startDate = new Date(startDateInput.value + 'T00:00:00');
-    const durationDays = parseInt((document.getElementById('durationSelect') as HTMLSelectElement).value);
-
-    weatherStatusEl.textContent = 'Loading...';
-    weatherStatusEl.style.color = '#fc0';
-
-    try {
-      if (source === 'average') {
-        weatherSchedule = await fetchNormalsSchedule(startDate, durationDays);
-      } else {
-        const year = parseInt(source);
-        const yearStart = new Date(year, startDate.getMonth(), startDate.getDate());
-        weatherSchedule = await fetchSeasonSchedule(yearStart, durationDays);
-        weatherSchedule.startDate = yearStart;
-      }
-
-      const dayCount = weatherSchedule.days.length;
-      weatherStatusEl.textContent = `${dayCount} days loaded`;
-      weatherStatusEl.style.color = '#6b6';
-      chart.setStartDate(startDate);
-      scheduleRecompute();
-    } catch (err) {
-      weatherStatusEl.textContent = `Error: ${(err as Error).message.slice(0, 30)}`;
-      weatherStatusEl.style.color = '#d42';
-      weatherSchedule = null;
-      weatherMode = 'manual';
-    }
-  }
 
   // Engine selector
   const engineSelect = document.getElementById('engineSelect') as HTMLSelectElement;
@@ -902,13 +906,19 @@ document.addEventListener('DOMContentLoaded', () => {
   updateDashboard(null);
   scene.updateFromGrid(grid, config, false, 0);
 
-  // Detect WebGPU, then auto-compute on boot
+  // Detect WebGPU, then load default weather and auto-compute
   detectWebGpu().then(available => {
     webGpuAvailable = available;
     if (available) {
       engineMode = 'gpu';
       (document.getElementById('engineSelect') as HTMLSelectElement).value = 'gpu';
     }
-    dispatchSim();
+    // Boot with 2025 weather if pre-selected in HTML
+    const weatherSelect = document.getElementById('weatherSource') as HTMLSelectElement;
+    if (weatherSelect.value !== 'manual') {
+      loadWeatherSource();
+    } else {
+      dispatchSim();
+    }
   });
 });

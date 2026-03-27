@@ -116,7 +116,7 @@
 
     <div class="section-label">Scenario</div>
 
-    <div class="panel">
+    <div class="panel collapsed">
       <h3>Environment</h3>
       <div class="panel-body">
         <div class="row">
@@ -132,7 +132,7 @@
           <label>Weather</label>
           <select id="weatherSource" style="flex:1;max-width:100px;">
             <option value="manual">Manual</option>
-            <option value="2025">2025</option>
+            <option value="2025" selected>2025</option>
             <option value="2024">2024</option>
             <option value="2023">2023</option>
             <option value="2022">2022</option>
@@ -140,7 +140,7 @@
           </select>
           <span class="value" id="weatherStatus" style="font-size:0.65rem;color:#666;">Manual</span>
         </div>
-        <div class="row" id="startDateRow" style="display:none;">
+        <div class="row" id="startDateRow">
           <label>Start date</label>
           <input type="date" id="startDate" style="flex:1;max-width:120px;font-size:0.72rem;background:#2a2a3e;color:#ddd;border:1px solid #555;border-radius:3px;padding:2px;" value="2025-05-01">
         </div>
@@ -175,7 +175,7 @@
       </div>
     </div>
 
-    <div class="panel">
+    <div class="panel collapsed">
       <h3>Aeration</h3>
       <div class="panel-body">
         <div class="row">

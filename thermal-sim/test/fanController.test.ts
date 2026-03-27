@@ -34,7 +34,7 @@ function makeSnapshot(overrides: Partial<StepSnapshot> = {}): StepSnapshot {
     timeHours: 0, coreTemp: 120, surfaceTemp: 100, avgTemp: 110,
     totalHeatGen: 500, avgOxygen: 0.15, avgMoisture: 0.55,
     fanOn: true, weightLbs: 500, volumeFt3: 15, avgBioActivity: 0.5,
-    ambientTemp: 75,
+    ambientTemp: 75, dutyCycle: 0.13,
     ...overrides,
   };
 }
